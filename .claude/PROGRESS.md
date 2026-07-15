@@ -11,7 +11,7 @@
 - [x] 管理后台三页签（真实数据看板/内容 CRUD/用户管理 + 诊断提交 + 留言）
 - [x] 本地端到端验证：9 页面 200、API 冒烟全过、浏览器走查（问卷全流程/评论自动回复/主题/后台）
 - [x] 部署包：deploy-alan-sg.sh（DNS+Node+证书+nginx+systemd+autopull 幂等一键）+ DEPLOY.md 运维手册
-- [x] GitHub 仓库创建并推送（public）
+- [x] GitHub 仓库创建并推送（当前 private；部署前需设为 public，见 DEPLOY.md 步骤 0）
 
 ## 待办
 - [ ] **用户动作**：腾讯云控制台网页终端执行部署命令（见 docs/DEPLOY.md 第一节），完成后按验收清单过一遍
