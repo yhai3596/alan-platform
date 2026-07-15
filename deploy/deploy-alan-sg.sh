@@ -5,14 +5,14 @@
 # 在腾讯云控制台网页终端以 root 执行（与 hvac 站相同的部署方式）：
 #   curl -fsSL https://raw.githubusercontent.com/yhai3596/alan-platform/main/deploy/deploy-alan-sg.sh | bash
 #
-# 幂等：可重复执行。完成后站点在 https://alan.geopro.cc
+# 幂等：可重复执行。完成后站点在 https://geopro.cc（www 跳转 apex）。
+# 会把主域名 geopro.cc 从旧站（Vercel）切到本机；hvac.geopro.cc 子域不受影响。
 # 前置：本机已具备 nginx、acme.sh（GoDaddy DNS-01 凭据在 ~/.acme.sh/account.conf）
 # ============================================================================
 set -uo pipefail
 
-DOMAIN="alan.geopro.cc"
+DOMAIN="geopro.cc"
 ZONE="geopro.cc"
-SUB="alan"
 APP_DIR="/var/www/alan"
 REPO="https://github.com/yhai3596/alan-platform.git"
 PORT=8201
@@ -22,18 +22,24 @@ SERVER_IP="$(curl -s --max-time 8 ifconfig.me || echo 43.156.58.154)"
 log() { echo -e "\n\033[1;33m==> $*\033[0m"; }
 
 # ---------------------------------------------------------------- 1. DNS
-log "1/8 确保 DNS A 记录 ${DOMAIN} -> ${SERVER_IP}"
+log "1/8 切换 DNS：@ (apex) A -> ${SERVER_IP}，www CNAME -> @（替换原 Vercel 指向）"
 GD_KEY=$(grep -oP "SAVED_GD_Key='?\K[^'\"]+" ~/.acme.sh/account.conf 2>/dev/null | head -1 || true)
 GD_SECRET=$(grep -oP "SAVED_GD_Secret='?\K[^'\"]+" ~/.acme.sh/account.conf 2>/dev/null | head -1 || true)
 if [ -n "${GD_KEY}" ] && [ -n "${GD_SECRET}" ]; then
   HTTP=$(curl -s -o /tmp/gd.out -w '%{http_code}' -X PUT \
-    "https://api.godaddy.com/v1/domains/${ZONE}/records/A/${SUB}" \
+    "https://api.godaddy.com/v1/domains/${ZONE}/records/A/@" \
     -H "Authorization: sso-key ${GD_KEY}:${GD_SECRET}" \
     -H "Content-Type: application/json" \
     -d "[{\"data\":\"${SERVER_IP}\",\"ttl\":600}]")
-  if [ "$HTTP" = "200" ]; then echo "DNS 记录已就绪"; else echo "[WARN] GoDaddy API 返回 $HTTP：$(cat /tmp/gd.out)（可在 GoDaddy 后台手动添加 A 记录 ${SUB} -> ${SERVER_IP}）"; fi
+  if [ "$HTTP" = "200" ]; then echo "apex A 记录已指向本机"; else echo "[WARN] apex A 记录设置失败 HTTP $HTTP：$(cat /tmp/gd.out)（可在 GoDaddy 后台手动改 @ -> ${SERVER_IP}）"; fi
+  HTTP=$(curl -s -o /tmp/gd.out -w '%{http_code}' -X PUT \
+    "https://api.godaddy.com/v1/domains/${ZONE}/records/CNAME/www" \
+    -H "Authorization: sso-key ${GD_KEY}:${GD_SECRET}" \
+    -H "Content-Type: application/json" \
+    -d "[{\"data\":\"@\",\"ttl\":600}]")
+  if [ "$HTTP" = "200" ]; then echo "www CNAME 已指向 apex"; else echo "[WARN] www CNAME 设置失败 HTTP $HTTP：$(cat /tmp/gd.out)（可在 GoDaddy 后台手动改 www CNAME -> @）"; fi
 else
-  echo "[WARN] 未在 ~/.acme.sh/account.conf 找到 GoDaddy 凭据，请手动添加 A 记录 ${SUB}.${ZONE} -> ${SERVER_IP}"
+  echo "[WARN] 未在 ~/.acme.sh/account.conf 找到 GoDaddy 凭据，请手动设置：@ A -> ${SERVER_IP}；www CNAME -> @"
 fi
 
 # ---------------------------------------------------------------- 2. Node.js
@@ -112,14 +118,25 @@ else
 fi
 
 # ---------------------------------------------------------------- 7. 证书 + nginx
-log "7/8 签发证书并配置 nginx"
+log "7/8 签发证书（${DOMAIN} + www.${DOMAIN}）并配置 nginx"
+
+# 幂等安全：停用其他占用主域名的旧 server 块（不会碰 hvac.geopro.cc 等子域配置）
+for f in /etc/nginx/conf.d/*.conf; do
+  [ -e "$f" ] || continue
+  [ "$f" = "/etc/nginx/conf.d/alan.conf" ] && continue
+  if grep -qE "server_name[^;]*[ \t](www\.)?geopro\.cc[ \t;]" "$f" 2>/dev/null; then
+    mv "$f" "$f.disabled_by_alan"
+    echo "已停用占用主域名的旧配置：$f -> $f.disabled_by_alan"
+  fi
+done
+
 mkdir -p "${CERT_DIR}"
 HAS_CERT=0
-if [ -s "${CERT_DIR}/alan.cer" ]; then
+if [ -s "${CERT_DIR}/alan.cer" ] && openssl x509 -in "${CERT_DIR}/alan.cer" -noout -text 2>/dev/null | grep -q "DNS:www.${DOMAIN}"; then
   HAS_CERT=1
-  echo "证书已存在"
+  echo "证书已存在（含 www SAN）"
 else
-  ~/.acme.sh/acme.sh --issue --dns dns_gd -d "${DOMAIN}" --server letsencrypt && \
+  ~/.acme.sh/acme.sh --issue --dns dns_gd -d "${DOMAIN}" -d "www.${DOMAIN}" --server letsencrypt --force && \
   ~/.acme.sh/acme.sh --install-cert -d "${DOMAIN}" \
     --fullchain-file "${CERT_DIR}/alan.cer" \
     --key-file "${CERT_DIR}/alan.key" \
@@ -131,8 +148,17 @@ if [ "$HAS_CERT" = "1" ]; then
   cat > /etc/nginx/conf.d/alan.conf <<EOF
 server {
     listen 80;
-    server_name ${DOMAIN};
-    return 301 https://\$host\$request_uri;
+    server_name ${DOMAIN} www.${DOMAIN};
+    return 301 https://${DOMAIN}\$request_uri;
+}
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name www.${DOMAIN};
+    ssl_certificate ${CERT_DIR}/alan.cer;
+    ssl_certificate_key ${CERT_DIR}/alan.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    return 301 https://${DOMAIN}\$request_uri;
 }
 server {
     listen 443 ssl;
@@ -155,7 +181,7 @@ else
   cat > /etc/nginx/conf.d/alan.conf <<EOF
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${DOMAIN} www.${DOMAIN};
     client_max_body_size 2m;
     location / {
         proxy_pass http://127.0.0.1:${PORT};

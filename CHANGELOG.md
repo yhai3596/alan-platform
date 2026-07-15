@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1.0.1 — 2026-07-15
+
+部署目标从 alan.geopro.cc 改为**主域名 geopro.cc**（用户指示：替换该域名下的旧站——Vercel 托管的默认 Next.js 页）。
+
+- deploy-alan-sg.sh：DNS 改写 `@`(apex) A 记录 + `www` CNAME→`@`（替换原 Vercel 指向）；证书含 www SAN；
+  nginx www→apex 规范 301；幂等停用本机其他占用主域名的旧 server 块（不碰 hvac.geopro.cc）
+- 应用侧：SITE_URL/SITE_HOST 默认与来源归因白名单改为 geopro.cc/www.geopro.cc
+- 文档同步（README / DEPLOY.md / .claude）；hvac.geopro.cc 子域完全不受影响
+
 ## v1.0.0 — 2026-07-15
 
 首个完整版本：按设计交付包（design_handoff_alan_platform，Classical 设计系统）1:1 重实现并补齐真实后端。

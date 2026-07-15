@@ -2,7 +2,7 @@
 // 事件写入 analytics_events，管理后台按时间窗聚合。
 const { db } = require('./db');
 
-const SELF_HOSTS = new Set(['localhost', '127.0.0.1', 'alan.geopro.cc', (process.env.SITE_HOST || '').toLowerCase()].filter(Boolean));
+const SELF_HOSTS = new Set(['localhost', '127.0.0.1', 'geopro.cc', 'www.geopro.cc', (process.env.SITE_HOST || '').toLowerCase()].filter(Boolean));
 
 function classifyRef(ref) {
   if (!ref) return '直接访问';

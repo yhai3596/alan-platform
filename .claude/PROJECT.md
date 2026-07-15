@@ -3,7 +3,7 @@
 ## 基本信息
 - **类型**: website（全栈多页站点 + 管理后台）
 - **路径**: `E:\AICoding\websites\alan-platform`
-- **线上**: https://alan.geopro.cc （腾讯云新加坡 43.156.58.154，与 hvac.geopro.cc 同机）
+- **线上**: https://geopro.cc （腾讯云新加坡 43.156.58.154，与 hvac.geopro.cc 同机）
 - **仓库**: https://github.com/yhai3596/alan-platform （public，autopull 部署要求）
 - **创建**: 2026-07-15
 

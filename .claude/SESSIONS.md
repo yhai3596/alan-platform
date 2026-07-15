@@ -1,5 +1,11 @@
 # 会话记录
 
+## 2026-07-15（续）· 部署目标改为主域名 geopro.cc（v1.0.1）
+- 用户指示部署到 geopro.cc 并替换旧站；探明旧站为 Vercel 托管的默认 Next.js 页（apex 307→www，title "Create Next App"）
+- 部署脚本改为：apex A + www CNAME 切换（GoDaddy API，凭据在服务器 acme.sh 内）、geopro.cc+www 双域名证书、
+  www→apex 301、幂等停用占用主域的旧 nginx 配置；应用侧域名默认值与归因白名单同步
+- 推送 GitHub；仍待用户两步：repo 转 public + 控制台跑脚本
+
 ## 2026-07-15 · 项目启动：设计交付 → v1.0.0 全量实现 + 部署包
 - 解读 design_handoff_alan_platform（12 页 .dc.html + Classical 设计系统 + backend spec）
 - 定案：Express+EJS+SQLite（D1/D2），字体自托管（D3），Agent 模板优先（D4），autopull 部署（D5）

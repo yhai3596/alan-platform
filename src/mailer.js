@@ -7,7 +7,7 @@ const USER = process.env.SMTP_USER || '';
 const PASS = process.env.SMTP_PASS || '';
 const PORT = Number(process.env.SMTP_PORT || 465);
 const FROM = process.env.SMTP_FROM || USER;
-const SITE_URL = process.env.SITE_URL || 'https://alan.geopro.cc';
+const SITE_URL = process.env.SITE_URL || 'https://geopro.cc';
 
 function enabled() { return !!(HOST && USER && PASS); }
 

@@ -14,7 +14,9 @@
 - [x] GitHub 仓库创建并推送（当前 private；部署前需设为 public，见 DEPLOY.md 步骤 0）
 
 ## 待办
-- [ ] **用户动作**：腾讯云控制台网页终端执行部署命令（见 docs/DEPLOY.md 第一节），完成后按验收清单过一遍
+- [ ] **用户动作 ①**：仓库设为 public（`gh repo edit yhai3596/alan-platform --visibility public --accept-visibility-change-consequences`）
+- [ ] **用户动作 ②**：腾讯云控制台网页终端执行部署命令（见 docs/DEPLOY.md 第一节）——将自动把 geopro.cc 从旧 Vercel 站切到新平台；完成后按验收清单过一遍
+- [ ] （可选清理）Vercel 后台解绑/删除旧 geopro.cc 项目（域名切走后旧站已断流，不清理也无影响）
 - [ ] （可选）服务器 .env 填 Z_AI_API_KEY → LLM 生成报告/助手/自动回复
 - [ ] （可选）服务器 .env 填 SMTP → 诊断报告邮件送达
 - [ ] 替换 About 页联系方式占位（微信/LinkedIn/公众号）与课程封面/培训照片

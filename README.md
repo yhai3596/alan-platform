@@ -3,7 +3,7 @@
 Alan 的个人品牌综合平台：个人 IP、企业 AI 服务（B2B）、AI 工具集、AI 课程、案例培训展示与博客，
 配套管理后台（内容管理、Agent 自动化、数据看板、用户管理）。
 
-- 线上：https://alan.geopro.cc
+- 线上：https://geopro.cc
 - 设计来源：`E:\AICoding\websites\个人IP与AI工具网站规划\design_handoff_alan_platform`（Classical 设计系统高保真稿，1:1 重实现）
 
 ## 技术栈
