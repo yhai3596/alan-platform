@@ -186,8 +186,8 @@
   tools: tools.map(t => ({ id: t.id, name: t.name, description: t.description, status: t.status, url: t.url })),
   cases: cases.map(c => ({ id: c.id, org: c.org, title: c.title, description: c.description, metric_value: c.metric_value, metric_label: c.metric_label, sort: c.sort })),
 }) %></script>
-<script src="/js/admin.js" defer></script>
-<script src="/js/admin2.js" defer></script>
-<script src="/js/assistant.js" defer></script>
+<script src="/js/admin.js?v=<%= assetVer %>" defer></script>
+<script src="/js/admin2.js?v=<%= assetVer %>" defer></script>
+<script src="/js/assistant.js?v=<%= assetVer %>" defer></script>
 </body>
 </html>

@@ -67,6 +67,8 @@ app.locals.fmtDT = s => {
 };
 app.locals.fmtNum = n => Number(n || 0).toLocaleString('en-US');
 app.locals.money = cents => (cents == null ? '—' : `¥ ${Math.round(cents / 100).toLocaleString('en-US')}`);
+// 静态资源版本号（每次进程启动变化；autopull 部署会重启进程 → 自动刷新浏览器缓存）
+app.locals.assetVer = Date.now().toString(36);
 // 站点文案键值层（后台「页面内容」可编辑，默认值=设计稿文案）
 app.locals.ct = siteContent.ct;
 app.locals.ctBr = siteContent.ctBr;
