@@ -67,8 +67,34 @@ src/
 views/               EJS 模板（partials + 12 页）
 public/              ds.css(设计系统原样) site.css(页面层) js/ assets/ vendor/(字体,构建产物)
 deploy/              deploy-alan-sg.sh(一键部署) autopull-alan.sh
-scripts/             copy-fonts.js(postinstall) smoke.js
+scripts/             copy-fonts.js(postinstall) smoke.js backup-db.js(数据库备份)
 ```
+
+## 数据库与备份
+
+SQLite 单文件，位于 `<DATA_DIR>/app.db`（`DATA_DIR` 默认 = 项目根 `data/`，线上即 `/var/www/alan/data/app.db`）。
+`data/` 在 .gitignore 中——**数据库不入库，本地与线上是两套独立数据**；部署走 `git pull` 只更新代码，`data/` 原地保留。
+
+**备份必须用脚本，不能 `cp app.db`**：库跑在 WAL 模式，新数据先落 `app.db-wal`，未 checkpoint 前主文件几乎是空的。
+实测直接拷贝主文件得到的副本**能正常打开、但 0 表 0 行**——比没有备份更危险。
+
+```bash
+npm run backup                      # 备份到 data/backups/app-YYYYMMDD-HHMMSS.db（UTC），默认保留最近 14 份
+node scripts/backup-db.js --keep 30 # 自定义保留份数
+node scripts/backup-db.js --dir /mnt/backup   # 自定义目录
+```
+
+脚本走 SQLite Online Backup API：**服务运行中可直接跑，无需停服**（已在并发写入下验证）；备份后自动做完整性校验与非空校验，
+不合格即删除并以非零码退出（cron 可据此告警）；产物转为单文件形态，可直接 scp 单个文件交付。
+
+服务器上按天备份（cron）：
+
+```bash
+0 4 * * * cd /var/www/alan && /usr/bin/node scripts/backup-db.js >> /var/log/alan-backup.log 2>&1
+```
+
+**恢复**：停服 → 删除 `app.db`、`app.db-wal`、`app.db-shm` → 把备份文件复制为 `app.db` → 启动（应用会自动转回 WAL 模式）。
+已做恢复演练验证：前台内容、用户账号、登录能力均随备份完整恢复。
 
 ## 环境变量
 
