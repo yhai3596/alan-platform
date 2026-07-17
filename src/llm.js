@@ -1,21 +1,21 @@
-// LLM 客户端（可选增强）：默认关闭，配置 Z_AI_API_KEY / LLM_API_KEY 后启用。
+// LLM 客户端：配置动态读取（管理后台 settings 优先，.env 兜底），改配置即时生效。
 // 未配置时诊断报告/助手/自动回复走内置模板与 FAQ，功能完整可用。
-const BASE = (process.env.LLM_BASE_URL || 'https://api.z.ai/api/paas/v4').replace(/\/$/, '');
-const KEY = process.env.Z_AI_API_KEY || process.env.LLM_API_KEY || '';
-const MODEL = process.env.LLM_MODEL || 'glm-4.5-flash';
+const { llmConfig } = require('./config');
 
-function enabled() { return !!KEY; }
+function enabled() { return !!llmConfig().key; }
+function modelName() { return llmConfig().model; }
 
 async function chat(messages, { maxTokens = 800, timeoutMs = 15000, json = false } = {}) {
-  if (!KEY) throw new Error('LLM not configured');
+  const cfg = llmConfig();
+  if (!cfg.key) throw new Error('LLM not configured');
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
   try {
-    const res = await fetch(`${BASE}/chat/completions`, {
+    const res = await fetch(`${cfg.base}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${KEY}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` },
       body: JSON.stringify({
-        model: MODEL,
+        model: cfg.model,
         messages,
         max_tokens: maxTokens,
         temperature: 0.5,
@@ -33,6 +33,19 @@ async function chat(messages, { maxTokens = 800, timeoutMs = 15000, json = false
   }
 }
 
+// 后台"测试连接"
+async function testConnection() {
+  const t0 = Date.now();
+  try {
+    const reply = await chat([
+      { role: 'user', content: '只回复两个字：正常' },
+    ], { maxTokens: 16, timeoutMs: 10000 });
+    return { ok: true, model: llmConfig().model, latencyMs: Date.now() - t0, reply: reply.slice(0, 20) };
+  } catch (e) {
+    return { ok: false, model: llmConfig().model, latencyMs: Date.now() - t0, error: e.message };
+  }
+}
+
 // 从可能带 markdown 代码围栏的输出中提取 JSON
 function parseJson(text) {
   const m = text.match(/\{[\s\S]*\}/);
@@ -40,4 +53,4 @@ function parseJson(text) {
   return JSON.parse(m[0]);
 }
 
-module.exports = { enabled, chat, parseJson, MODEL };
+module.exports = { enabled, chat, parseJson, testConnection, modelName };

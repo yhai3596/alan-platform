@@ -116,7 +116,42 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, sess TEXT NOT NULL, expire INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS site_content (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS api_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  revoked INTEGER NOT NULL DEFAULT 0,
+  last_used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS agent_activity (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  target TEXT NOT NULL DEFAULT '',
+  detail TEXT NOT NULL DEFAULT '',
+  ok INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_activity_time ON agent_activity(created_at);
 `);
+
+// ---------- 增量迁移（线上库为既有 schema，只做加列，幂等） ----------
+function addColumn(table, colDef) {
+  try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${colDef}`); } catch (_) { /* 已存在 */ }
+}
+addColumn('posts', "created_by TEXT NOT NULL DEFAULT 'admin'");     // admin | ai | agent:<name>
+addColumn('comments', 'agent_status TEXT');                          // NULL/pending=待自动处理 replied/skipped=已终态
+addColumn('courses', "cover_url TEXT NOT NULL DEFAULT ''");
+// 存量评论：已有回复的顶层评论视为已处理，避免 Worker 重复回帖
+db.exec(`UPDATE comments SET agent_status='replied'
+  WHERE parent_id IS NULL AND agent_status IS NULL
+    AND id IN (SELECT DISTINCT parent_id FROM comments WHERE parent_id IS NOT NULL)`);
 
 const getSetting = (k, d = null) => {
   const r = db.prepare('SELECT value FROM settings WHERE key=?').get(k);
@@ -202,6 +237,18 @@ function seedContent() {
     '检索、对比与交底书初稿由 AI 辅助完成，工程师专注技术判断与权利要求策略。', '3×', '专利产出效率', 3);
 
   if (getSetting('agent_autoreply') === null) setSetting('agent_autoreply', '1');
+}
+
+// 运行配置默认值（每次启动补齐缺失项，不覆盖已有值）
+function seedDefaults() {
+  const defaults = {
+    agent_autoreply: '1',        // 评论自动回复（用户决策：自动）
+    agent_content_review: '1',   // Agent/AI 产出内容走草稿审核（用户决策：审核制）
+    agent_scan_interval_min: '5' // Worker 巡检间隔（分钟）
+  };
+  for (const [k, v] of Object.entries(defaults)) {
+    if (getSetting(k) === null) setSetting(k, v);
+  }
 }
 
 // ---------- 管理员种子 ----------
@@ -298,6 +345,7 @@ function seedDemo() {
 }
 
 seedContent();
+seedDefaults();
 seedAdmin();
 seedDemo();
 

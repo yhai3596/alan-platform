@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## v1.1.0 — 2026-07-17
+
+后台管理与 Agent 自动化大升级（Phase A–F 全部落地：后端 + 界面 + 文档）。从「有引擎没方向盘」到全部接通。
+
+### 新增能力
+- **A · 全内容 CRUD + 删除**：案例增删改（原缺失）；文章"下线=归档软删（保留评论/统计），再删=彻底移除"，课程/工具/案例硬删+二次确认。
+- **B · 配置底座**：后台可填 LLM key / Base / 模型 + "测试连接"（存 settings，即时生效，Key 只存服务端脱敏回显）；Agent 双模式开关（评论自动回复 / 内容审核制）+ 巡检间隔。`src/config.js` 承载。
+- **C · AI 文章草稿 + 审核发布流**：后台一键"AI 生成草稿"（LLM，选题→标题/摘要/正文/分类），入草稿待审队列，预览 + 一键发布。
+- **D · 诊断知识库后台可编辑**：结合点清单（4 痛点域）/ 基础评语 / 三阶段模板 / 摘要模板搬进 DB，后台编辑器可改可恢复默认；`report.js` 读 DB，内置常量兜底。
+- **E · Agent API + 令牌 + 站内自动化 Worker**（从"有效管理"视角重设计为双轨）：
+  - 站内 Worker（`src/worker.js`，零外部依赖）进程内定时巡检未回复评论→自动回帖，含失败退避、开关关闭期间积压补处理、心跳；
+  - 对外 Agent API（`src/routes/agent-api.js`）：Bearer 令牌认证（哈希存储/只显示一次/可吊销），端点 /status /posts（受审核制约束→草稿）/comments（拉队列）/comments/:id/reply（自动上线）/messages；
+  - 后台「智能助理」页：状态总览 + 队列 + 模式开关 + LLM 配置 + 令牌管理 + 活动日志（全部动作留痕 `agent_activity`）；
+  - `docs/AGENT_API.md` + `/docs/agent-api` 在线文档（含轮询值守脚本示例）。
+- **F · 全站文案键值化 + 图片上传**：`src/content.js` site_content 键值层（68 个可编辑块，默认=设计稿文案，清空回落默认）；8 个前台页文案改为 `ct()/ctBr()/ctImg()`；后台「页面内容」分组编辑 + 图片上传（multer，案例/课程封面/培训照片/头像）。
+
+### 架构/工程
+- 后台界面拆为分片 include（admin-content/pages/agent/kb），避免单文件过大。
+- DB 增量迁移（幂等加列 posts.created_by / comments.agent_status / courses.cover_url），兼容既有线上库。
+- `content.save` 拒绝含 U+FFFD 的脏输入（防编码损坏入库）。
+
+### 验证
+本地冒烟 14/14；后台五页签浏览器实测（页签切换、内容/案例 CRUD+删除、AI 草稿、页面文案保存、LLM 配置、令牌生成、知识库编辑）；Agent API 端到端（建令牌→status→发文入草稿）；前台 8 页零乱码；错误日志干净。
+
+
 ## v1.0.1 — 2026-07-15
 
 部署目标从 alan.geopro.cc 改为**主域名 geopro.cc**（用户指示：替换该域名下的旧站——Vercel 托管的默认 Next.js 页）。

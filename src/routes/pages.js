@@ -72,4 +72,14 @@ router.get('/login', (req, res) => {
   res.render('login', { title: '登录 · Alan · HVAC × AI', active: '', next: req.query.next || '/' });
 });
 
+// Agent API 文档（管理员，渲染 docs/AGENT_API.md）
+router.get('/docs/agent-api', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') return res.redirect('/login?next=/docs/agent-api');
+  const fs = require('fs');
+  const path = require('path');
+  let html = '<p>文档缺失。</p>';
+  try { html = marked.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'AGENT_API.md'), 'utf8')); } catch (e) { /* noop */ }
+  res.render('doc', { title: 'Agent API 文档 · Alan', active: '', contentHtml: html });
+});
+
 module.exports = router;

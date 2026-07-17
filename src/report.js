@@ -1,6 +1,8 @@
 // 企业 AI 诊断报告生成器（Hermes Agent 职责）：
 // 基础评估为确定性规则（与设计稿口径一致），配置 LLM 后自动增强摘要与阶段说明，失败无感回退。
+// 知识库（结合点/阶段模板/基础评语/成熟度映射）后台可编辑：settings.diagnosis_kb 优先，内置默认兜底。
 const llm = require('./llm');
+const { getSetting } = require('./db');
 
 const QUESTIONS = [
   { kicker: '第 1 题 · 业务现状', title: '贵司目前的数字化基础处于什么阶段？', options: ['纸质/Excel 为主', '有 ERP，但数据分散', 'ERP + MES 等系统较完整', '已有数据平台与分析团队'] },
@@ -80,36 +82,71 @@ const LEVEL_DESC = {
   L3: 'AI 已进入部分正式流程，具备扩面条件',
 };
 
+// 阶段模板（{focus}/{goal} 为占位符，按问卷答案代入）
+const STAGE_TEMPLATES = [
+  { name: '阶段一 · 快速试点', window: '0–3 个月', desc: '围绕「{focus}」选定 1 个高频场景，用成熟 AI 工具搭建最小可用流程，拿到第一批可量化结果。' },
+  { name: '阶段二 · 扩面与流程改造', window: '3–6 个月', desc: '把试点沉淀为标准流程（SOP），在业务流程中为 AI 让出明确位置，扩展到相邻环节并建立数据回流。' },
+  { name: '阶段三 · 能力内化', window: '6–12 个月', desc: '开展岗位化 AI 技能培训，把外部方案转为内部能力，建立效果度量与治理机制，服务于「{goal}」的年度目标。' },
+];
+
+const SUMMARY_TEMPLATE = '{foundation}。建议从「{focus}」切入，以 3 个月试点建立第一个 AI 落地场景，同步开展团队 AI 技能培训，再分阶段推广到相邻环节。完整报告含 {spots} 处 AI 结合点清单与三阶段路线图。';
+
+const DEFAULT_KB = {
+  spotLibrary: SPOT_LIBRARY,
+  foundationNotes: FOUNDATION_NOTES,
+  levelByAiStatus: LEVEL_BY_AI_STATUS,
+  levelDesc: LEVEL_DESC,
+  stageTemplates: STAGE_TEMPLATES,
+  summaryTemplate: SUMMARY_TEMPLATE,
+};
+
+// 读取知识库：后台保存的 settings.diagnosis_kb 优先，字段级回退到内置默认
+function getKB() {
+  const kb = { ...DEFAULT_KB };
+  try {
+    const saved = JSON.parse(getSetting('diagnosis_kb') || 'null');
+    if (saved && typeof saved === 'object') {
+      for (const domain of QUESTIONS[2].options) {
+        if (Array.isArray(saved.spotLibrary && saved.spotLibrary[domain]) && saved.spotLibrary[domain].length >= 5) {
+          kb.spotLibrary = { ...kb.spotLibrary, [domain]: saved.spotLibrary[domain].map(String) };
+        }
+      }
+      if (Array.isArray(saved.foundationNotes) && saved.foundationNotes.length === 4) kb.foundationNotes = saved.foundationNotes.map(String);
+      if (Array.isArray(saved.stageTemplates) && saved.stageTemplates.length === 3 &&
+          saved.stageTemplates.every(s => s && s.name && s.window && s.desc)) {
+        kb.stageTemplates = saved.stageTemplates.map(s => ({ name: String(s.name), window: String(s.window), desc: String(s.desc) }));
+      }
+      if (typeof saved.summaryTemplate === 'string' && saved.summaryTemplate.includes('{focus}')) kb.summaryTemplate = saved.summaryTemplate;
+      if (saved.levelDesc && typeof saved.levelDesc === 'object') kb.levelDesc = { ...kb.levelDesc, ...saved.levelDesc };
+    }
+  } catch (e) {
+    console.warn('[report] diagnosis_kb 解析失败，使用内置默认：', e.message);
+  }
+  return kb;
+}
+
+const fill = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+
 function baseReport(answers) {
+  const kb = getKB();
   const [a0, a1, a2, a3, a4] = answers;
   const focus = QUESTIONS[2].options[a2];
-  const level = LEVEL_BY_AI_STATUS[a1];
-  const lib = SPOT_LIBRARY[focus] || SPOT_LIBRARY['市场与竞品情报'];
+  const level = kb.levelByAiStatus[a1] || 'L1';
+  const lib = kb.spotLibrary[focus] || kb.spotLibrary['市场与竞品情报'];
   const spots = Math.min(5 + a0 + a3, lib.length);
   const goal = QUESTIONS[4].options[a4];
 
-  const stages = [
-    {
-      name: '阶段一 · 快速试点',
-      window: '0–3 个月',
-      desc: `围绕「${focus}」选定 1 个高频场景，用成熟 AI 工具搭建最小可用流程，拿到第一批可量化结果${a0 === 0 ? '；同步补齐该场景所需数据的电子化' : ''}。`,
-    },
-    {
-      name: '阶段二 · 扩面与流程改造',
-      window: '3–6 个月',
-      desc: '把试点沉淀为标准流程（SOP），在业务流程中为 AI 让出明确位置，扩展到相邻环节并建立数据回流。',
-    },
-    {
-      name: '阶段三 · 能力内化',
-      window: '6–12 个月',
-      desc: `开展岗位化 AI 技能培训，把外部方案转为内部能力，建立效果度量与治理机制，服务于「${goal}」的年度目标。`,
-    },
-  ];
+  const vars = { focus, goal, spots, foundation: kb.foundationNotes[a0] };
+  const stages = kb.stageTemplates.map((s, i) => ({
+    name: s.name,
+    window: s.window,
+    desc: fill(s.desc, vars) + (i === 0 && a0 === 0 ? '（同步补齐该场景所需数据的电子化。）' : ''),
+  }));
 
-  const summary = `${FOUNDATION_NOTES[a0]}。建议从「${focus}」切入，以 3 个月试点建立第一个 AI 落地场景，同步开展团队 AI 技能培训，再分阶段推广到相邻环节。完整报告含 ${spots} 处 AI 结合点清单与三阶段路线图。`;
+  const summary = fill(kb.summaryTemplate, vars);
 
   return {
-    level, levelDesc: LEVEL_DESC[level], spots, focus, goal,
+    level, levelDesc: kb.levelDesc[level] || '', spots, focus, goal,
     integrationPoints: lib.slice(0, spots),
     stages, summary,
     answersText: answers.map((a, i) => `${QUESTIONS[i].title} → ${QUESTIONS[i].options[a]}`),
@@ -148,4 +185,4 @@ async function generate(answers, company) {
   return { report, generator };
 }
 
-module.exports = { QUESTIONS, baseReport, generate };
+module.exports = { QUESTIONS, baseReport, generate, getKB, DEFAULT_KB };

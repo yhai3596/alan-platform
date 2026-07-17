@@ -6,7 +6,7 @@
   <header style="padding:56px 0 28px">
     <a href="/services" style="font-size:13px">← 返回企业 AI 服务</a>
     <h1 style="font-weight:400;font-size:clamp(32px,4vw,48px);line-height:1.15;margin:28px 0 0">企业 AI 诊断</h1>
-    <p style="font-size:15px;line-height:26px;margin:14px 0 0;color:color-mix(in srgb, var(--color-text) 74%, transparent)">约 10 分钟 · 完成后由 Hermes Agent 生成诊断报告<%= mailerOn ? '并发送至您的邮箱' : '，Alan 审核后回访解读' %></p>
+    <p style="font-size:15px;line-height:26px;margin:14px 0 0;color:color-mix(in srgb, var(--color-text) 74%, transparent)"><%- ct('diagnosis.note') %><%= mailerOn ? '并发送至您的邮箱' : '，Alan 审核后回访解读' %></p>
   </header>
 
   <div style="display:flex;align-items:center;gap:13.8px;padding-bottom:28px">

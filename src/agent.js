@@ -2,6 +2,7 @@
 // 默认内置 FAQ 知识库；配置 LLM 后自动升级为知识库约束下的生成式回答，失败回退 FAQ。
 const { db, getSetting, setSetting } = require('./db');
 const llm = require('./llm');
+const { logActivity, agentModes } = require('./config');
 
 const SITE_KNOWLEDGE = `站点：Alan 个人品牌平台（HVAC × AI）。站主 Alan：暖通行业 AI 专家，20 多年制造业从业经验，帮助企业 AI 应用落地。
 板块：
@@ -78,10 +79,14 @@ async function assistantReply(message) {
   return { reply: faq || FALLBACK_REPLY, via: faq ? 'faq' : 'fallback' };
 }
 
-// 评论自动回复：常见问题即时回复并标注，其余留给人工
-async function commentAutoReply(postId, commentId, commentBody) {
-  if (getSetting('agent_autoreply', '1') !== '1') return null;
+// 评论自动回复：常见问题即时回复并标注，其余标记 skipped 转人工。
+// 无论结果如何都把评论置为终态（replied/skipped），供 Worker 去重与后台观测。
+const setCommentStatus = (id, status) => db.prepare('UPDATE comments SET agent_status=? WHERE id=?').run(status, id);
+
+async function commentAutoReply(postId, commentId, commentBody, actor = 'system:即时') {
+  if (getSetting('agent_autoreply', '1') !== '1') return null; // 保持 pending，开启后由 Worker 补处理
   let replyText = null;
+  let via = 'faq';
 
   if (llm.enabled()) {
     try {
@@ -90,7 +95,7 @@ async function commentAutoReply(postId, commentId, commentBody) {
         { role: 'user', content: `读者评论：${commentBody}` },
       ], { maxTokens: 300, timeoutMs: 10000, json: true });
       const j = llm.parseJson(text);
-      if (j.can_answer && j.reply) replyText = String(j.reply).trim();
+      if (j.can_answer && j.reply) { replyText = String(j.reply).trim(); via = 'llm'; }
     } catch (e) {
       console.warn('[agent] 评论 LLM 失败，回退 FAQ：', e.message);
       replyText = matchFaq(commentBody);
@@ -99,20 +104,29 @@ async function commentAutoReply(postId, commentId, commentBody) {
     replyText = matchFaq(commentBody);
   }
 
-  if (!replyText) return null;
+  if (!replyText) {
+    setCommentStatus(commentId, 'skipped');
+    logActivity(actor, 'comment_skip', `comment#${commentId}`, '非常见问题，转人工', true);
+    return null;
+  }
   heartbeat();
-  const r = db.prepare(`INSERT INTO comments(post_id,user_id,author_name,body,parent_id,is_agent,agent_label)
-    VALUES (?,NULL,'Alan',?,?,1,'AI 自动回复 · via 小龙虾')`).run(postId, replyText, commentId);
+  const r = db.prepare(`INSERT INTO comments(post_id,user_id,author_name,body,parent_id,is_agent,agent_label,agent_status)
+    VALUES (?,NULL,'Alan',?,?,1,'AI 自动回复 · via 小龙虾','replied')`).run(postId, replyText, commentId);
+  setCommentStatus(commentId, 'replied');
+  logActivity(actor, 'comment_reply', `comment#${commentId}`, `${via} · ${replyText.slice(0, 60)}`, true);
   return db.prepare('SELECT * FROM comments WHERE id=?').get(r.lastInsertRowid);
 }
 
 function agentStatus() {
+  const modes = agentModes();
   return {
-    autoreply: getSetting('agent_autoreply', '1') === '1',
+    autoreply: modes.autoreply,
+    contentReview: modes.contentReview,
+    scanIntervalMin: modes.scanIntervalMin,
     lastActive: getSetting('agent_last_active', null),
-    mode: llm.enabled() ? `已连接 LLM（${llm.MODEL}）` : '内置 FAQ 模式',
+    mode: llm.enabled() ? `已连接 LLM（${llm.modelName()}）` : '内置 FAQ 模式',
     llm: llm.enabled(),
   };
 }
 
-module.exports = { assistantReply, commentAutoReply, agentStatus, matchFaq };
+module.exports = { assistantReply, commentAutoReply, agentStatus, matchFaq, SITE_KNOWLEDGE };

@@ -8,6 +8,8 @@ const session = require('express-session');
 
 const { db } = require('./src/db');
 const makeStore = require('./src/session-store');
+const siteContent = require('./src/content');
+const worker = require('./src/worker');
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -56,8 +58,19 @@ function fmtDate(s) {
     .format(d).replace(/\//g, '.');
 }
 app.locals.fmtDate = fmtDate;
+app.locals.fmtDT = s => {
+  if (!s) return '—';
+  const d = new Date(String(s).replace(' ', 'T') + (/[Z+]/.test(String(s)) ? '' : 'Z'));
+  if (Number.isNaN(d.getTime())) return String(s).slice(5, 16);
+  return new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    .format(d).replace(/\//g, '.');
+};
 app.locals.fmtNum = n => Number(n || 0).toLocaleString('en-US');
 app.locals.money = cents => (cents == null ? '—' : `¥ ${Math.round(cents / 100).toLocaleString('en-US')}`);
+// 站点文案键值层（后台「页面内容」可编辑，默认值=设计稿文案）
+app.locals.ct = siteContent.ct;
+app.locals.ctBr = siteContent.ctBr;
+app.locals.ctImg = siteContent.ctImg;
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
@@ -67,6 +80,7 @@ app.use((req, res, next) => {
 
 // —— 路由 ——
 app.use('/', require('./src/routes/pages'));
+app.use('/api/agent', require('./src/routes/agent-api')); // 外部 Agent（Bearer 令牌）
 app.use('/api', require('./src/routes/api'));
 app.use('/', require('./src/routes/admin'));
 
@@ -81,4 +95,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, HOST, () => {
   console.log(`Alan platform 已启动：http://${HOST}:${PORT}（NODE_ENV=${process.env.NODE_ENV || 'development'}）`);
+  worker.start(); // 站内自动化：评论巡检 / 积压补处理 / 心跳
 });

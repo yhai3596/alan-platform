@@ -5,8 +5,8 @@
 
   <section style="padding:70px 0 56px">
     <span class="kicker">AI 课程 · The Curriculum</span>
-    <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,64px);line-height:1.12;margin:0">不讲概念，<br>讲怎么把 AI 用起来。</h1>
-    <p style="font-size:16px;line-height:28px;max-width:56ch;margin:28px 0 0;color:color-mix(in srgb, var(--color-text) 78%, transparent)">面向制造业与暖通行业从业者的实战课程。注册登录后可购买与学习。</p>
+    <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,64px);line-height:1.12;margin:0"><%- ctBr('courses.hero_title') %></h1>
+    <p style="font-size:16px;line-height:28px;max-width:56ch;margin:28px 0 0;color:color-mix(in srgb, var(--color-text) 78%, transparent)"><%- ct('courses.hero_body') %></p>
   </section>
 
   <hr class="hairline">
@@ -16,7 +16,9 @@
       <% for (const c of courses) { %>
       <% const coming = c.status !== 'live'; %>
       <div class="card" style="padding:0;gap:0;overflow:hidden<%= coming ? ';border-style:dashed' : '' %>">
-        <div style="height:150px"><div class="img-slot"><span><%= coming ? '筹备中' : '课程封面 · 待上传' %></span></div></div>
+        <div style="height:150px">
+          <% if (c.cover_url) { %><img src="<%= c.cover_url %>" alt="<%= c.title %>" style="width:100%;height:100%;object-fit:cover"><% } else { %><div class="img-slot"><span><%= coming ? '筹备中' : '课程封面 · 待上传' %></span></div><% } %>
+        </div>
         <div style="display:flex;flex-direction:column;gap:9.2px;padding:20px">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <span class="card-kicker" <%- coming ? 'style="color:var(--color-neutral-500)"' : '' %>><%= c.kicker %></span>

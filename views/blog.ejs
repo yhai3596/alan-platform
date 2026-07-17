@@ -6,7 +6,7 @@
   <section style="padding:70px 0 42px;display:flex;align-items:baseline;justify-content:space-between;gap:28px;flex-wrap:wrap">
     <div>
       <span class="kicker">AI 资讯 · The Journal</span>
-      <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,64px);line-height:1.12;margin:0">行业观察与工作笔记。</h1>
+      <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,64px);line-height:1.12;margin:0"><%- ct('blog.hero_title') %></h1>
     </div>
     <div style="display:flex;gap:9.2px;flex-wrap:wrap">
       <a href="/blog" class="tag <%= !cat ? 'tag-outline' : 'tag-neutral' %>" style="text-decoration:none">全部</a>
@@ -36,14 +36,14 @@
     <aside style="display:flex;flex-direction:column;gap:28px;padding-top:28px">
       <div class="card" style="padding:20px;background:var(--color-neutral-100)">
         <span class="card-kicker">订阅 · Subscribe</span>
-        <p style="font-size:13.5px;line-height:24px;margin:0;color:color-mix(in srgb, var(--color-text) 78%, transparent)">新文章与工具上新，直接进你的邮箱。不发广告。</p>
+        <p style="font-size:13.5px;line-height:24px;margin:0;color:color-mix(in srgb, var(--color-text) 78%, transparent)"><%- ct('blog.subscribe_note') %></p>
         <input class="input" type="email" id="blog-subscribe-email" placeholder="you@example.com" aria-label="Email">
         <button type="button" class="btn btn-primary btn-block" id="blog-subscribe-btn">订阅</button>
         <p class="form-ok" id="blog-subscribe-msg" style="min-height:0"></p>
       </div>
       <div>
         <span style="font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-600)">写作方式</span>
-        <p style="font-size:13.5px;line-height:24px;margin:9.2px 0 0;color:color-mix(in srgb, var(--color-text) 72%, transparent)">文章由我本人撰写，AI 工具辅助整理与配图。观点是我的，错误也是。</p>
+        <p style="font-size:13.5px;line-height:24px;margin:9.2px 0 0;color:color-mix(in srgb, var(--color-text) 72%, transparent)"><%- ct('blog.writing_note') %></p>
       </div>
     </aside>
   </section>

@@ -7,6 +7,8 @@
     <nav style="display:flex;flex-direction:column;gap:4px">
       <button type="button" class="admin-navbtn on" data-admin-tab="dash">数据看板 <small>ANALYTICS</small></button>
       <button type="button" class="admin-navbtn" data-admin-tab="content">内容管理 <small>CONTENT</small></button>
+      <button type="button" class="admin-navbtn" data-admin-tab="pages">页面内容 <small>PAGES</small></button>
+      <button type="button" class="admin-navbtn" data-admin-tab="agent">智能助理 <small>AGENT</small></button>
       <button type="button" class="admin-navbtn" data-admin-tab="users">用户管理 <small>USERS</small></button>
     </nav>
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--color-neutral-600)">
@@ -102,75 +104,10 @@
       </div>
     </div>
 
-    <!-- ═══════════ 内容管理 ═══════════ -->
-    <div id="tab-content" hidden>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap">
-        <h1 style="font-weight:400;font-size:34px;margin:0">内容管理</h1>
-        <button type="button" class="btn btn-primary" id="btn-new-content">+ 新建内容</button>
-      </div>
-      <div style="display:flex;gap:9.2px;margin-top:20px">
-        <button type="button" class="tag tag-outline" data-content-filter="all" style="cursor:pointer;background:transparent">全部</button>
-        <button type="button" class="tag tag-neutral" data-content-filter="post" style="cursor:pointer">文章</button>
-        <button type="button" class="tag tag-neutral" data-content-filter="course" style="cursor:pointer">课程</button>
-        <button type="button" class="tag tag-neutral" data-content-filter="tool" style="cursor:pointer">工具</button>
-      </div>
-      <div class="card" style="padding:28px;margin-top:20px">
-        <table class="table">
-          <thead><tr><th>标题</th><th>类型</th><th>状态</th><th>更新时间</th><th style="text-align:right">操作</th></tr></thead>
-          <tbody id="content-rows">
-            <% for (const p of posts) { %>
-            <tr data-ctype="post">
-              <td><%= p.title %></td><td>文章</td>
-              <td><span class="tag <%= p.status === 'published' ? 'tag-accent' : 'tag-neutral' %>"><%= p.status === 'published' ? '已发布' : '草稿' %></span></td>
-              <td class="tnum"><%= fmtDate(p.published_at || p.updated_at) %></td>
-              <td style="text-align:right"><button type="button" class="btn btn-ghost" data-edit="post" data-id="<%= p.id %>">编辑</button></td>
-            </tr>
-            <% } %>
-            <% for (const c of courses) { %>
-            <tr data-ctype="course">
-              <td><%= c.title %></td><td>课程</td>
-              <td><span class="tag <%= c.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= c.status === 'live' ? '已发布' : '筹备中' %></span></td>
-              <td class="tnum"><%= fmtDate(c.updated_at) %></td>
-              <td style="text-align:right"><button type="button" class="btn btn-ghost" data-edit="course" data-id="<%= c.id %>">编辑</button></td>
-            </tr>
-            <% } %>
-            <% for (const t of tools) { %>
-            <tr data-ctype="tool">
-              <td><%= t.name %></td><td>工具</td>
-              <td><span class="tag <%= t.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= t.status === 'live' ? '已发布' : '筹备中' %></span></td>
-              <td class="tnum"><%= fmtDate(t.updated_at) %></td>
-              <td style="text-align:right"><button type="button" class="btn btn-ghost" data-edit="tool" data-id="<%= t.id %>">编辑</button></td>
-            </tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card" style="padding:28px;margin-top:20px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap">
-          <span class="card-kicker">Agent 自动化 · 小龙虾 / Hermes</span>
-          <span style="font-size:12px;color:var(--color-neutral-600)"><%= agentStatus.mode %><%= agentStatus.lastActive ? ' · 最近活动 ' + fmtDate(agentStatus.lastActive) : '' %></span>
-        </div>
-        <div style="display:flex;flex-direction:column;margin-top:9.2px">
-          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr) auto;gap:20px;align-items:baseline;padding:13.8px 0;border-bottom:1px solid var(--color-divider)">
-            <span style="font-size:14px">文章草稿生成</span>
-            <span style="font-size:13px;color:var(--color-neutral-600)">小龙虾 CLI · 生成草稿进入「草稿」状态，人工审核后发布</span>
-            <span class="tag tag-neutral">预留接口</span>
-          </div>
-          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr) auto;gap:20px;align-items:baseline;padding:13.8px 0;border-bottom:1px solid var(--color-divider)">
-            <span style="font-size:14px">评论检测与自动回复</span>
-            <span style="font-size:13px;color:var(--color-neutral-600)">常见问题即时回复并标注，其余转人工 · 点击右侧开关切换</span>
-            <button type="button" class="tag <%= agentStatus.autoreply ? 'tag-accent' : 'tag-neutral' %>" id="agent-toggle" data-on="<%= agentStatus.autoreply ? '1' : '0' %>" style="cursor:pointer"><%= agentStatus.autoreply ? '已开启' : '已关闭' %></button>
-          </div>
-          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr) auto;gap:20px;align-items:baseline;padding:13.8px 0">
-            <span style="font-size:14px">AI 诊断报告生成</span>
-            <span style="font-size:13px;color:var(--color-neutral-600)">Hermes Agent · 问卷提交后自动生成诊断报告<%= mailerEnabled ? '并邮件送达' : '（邮件通道未配置，报告入库可查）' %></span>
-            <span class="tag <%= llmEnabled ? 'tag-accent' : 'tag-outline' %>"><%= llmEnabled ? '已连接 LLM' : '模板模式' %></span>
-          </div>
-        </div>
-      </div>
-      <p style="font-size:12px;color:var(--color-neutral-600);margin-top:14px">前台各页面的文章、课程与工具内容均从此处维护；发布后前台即时更新。LLM / 邮件通道在服务器 .env 中配置。</p>
-    </div>
+    <!-- ═══════════ 内容管理 / 页面内容 / Agent 自动化 ═══════════ -->
+    <%- include('partials/admin-content') %>
+    <%- include('partials/admin-pages') %>
+    <%- include('partials/admin-agent') %>
 
     <!-- ═══════════ 用户管理 ═══════════ -->
     <div id="tab-users" hidden>
@@ -245,10 +182,12 @@
 
 <script type="application/json" id="admin-data"><%- JSON.stringify({
   posts: posts.map(p => ({ id: p.id, title: p.title, category: p.category, excerpt: p.excerpt, content_md: p.content_md, read_minutes: p.read_minutes, status: p.status })),
-  courses: courses.map(c => ({ id: c.id, title: c.title, description: c.description, lectures: c.lectures, price_yuan: c.price_cents == null ? '' : Math.round(c.price_cents / 100), status: c.status, tag: c.tag, kicker: c.kicker })),
+  courses: courses.map(c => ({ id: c.id, title: c.title, description: c.description, lectures: c.lectures, price_yuan: c.price_cents == null ? '' : Math.round(c.price_cents / 100), status: c.status, tag: c.tag, kicker: c.kicker, cover_url: c.cover_url || '' })),
   tools: tools.map(t => ({ id: t.id, name: t.name, description: t.description, status: t.status, url: t.url })),
+  cases: cases.map(c => ({ id: c.id, org: c.org, title: c.title, description: c.description, metric_value: c.metric_value, metric_label: c.metric_label, sort: c.sort })),
 }) %></script>
 <script src="/js/admin.js" defer></script>
+<script src="/js/admin2.js" defer></script>
 <script src="/js/assistant.js" defer></script>
 </body>
 </html>

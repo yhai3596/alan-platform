@@ -1,24 +1,24 @@
-// 管理后台交互：页签切换 / 时间窗切换 / 内容筛选与编辑 / Agent 开关 / 用户搜索
+// 后台核心交互：页签切换 + 内容 CRUD 弹窗 + 删除 + 草稿发布 + AI 生成草稿
 (function () {
-  var DATA = JSON.parse(document.getElementById('admin-data').textContent);
+  var DATA = {};
+  try { DATA = JSON.parse(document.getElementById('admin-data').textContent); } catch (e) {}
+  window.AdminData = DATA;
 
   // —— 页签 ——
-  var tabs = { dash: document.getElementById('tab-dash'), content: document.getElementById('tab-content'), users: document.getElementById('tab-users') };
+  var TABS = ['dash', 'content', 'pages', 'agent', 'users'];
   var navBtns = document.querySelectorAll('[data-admin-tab]');
   function showTab(name) {
-    for (var k in tabs) tabs[k].hidden = k !== name;
+    if (TABS.indexOf(name) < 0) name = 'dash';
+    TABS.forEach(function (t) { var el = document.getElementById('tab-' + t); if (el) el.hidden = t !== name; });
     navBtns.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-admin-tab') === name); });
     try { sessionStorage.setItem('alan-admin-tab', name); } catch (e) {}
   }
   navBtns.forEach(function (b) { b.addEventListener('click', function () { showTab(b.getAttribute('data-admin-tab')); }); });
-  try { var saved = sessionStorage.getItem('alan-admin-tab'); if (saved && tabs[saved]) showTab(saved); } catch (e) {}
+  try { var saved = sessionStorage.getItem('alan-admin-tab'); if (saved) showTab(saved); } catch (e) {}
 
   // —— 时间窗 ——
   document.querySelectorAll('input[name="range"]').forEach(function (r) {
-    r.addEventListener('change', function () {
-      try { sessionStorage.setItem('alan-admin-tab', 'dash'); } catch (e) {}
-      location.href = '/admin?range=' + r.value;
-    });
+    r.addEventListener('change', function () { try { sessionStorage.setItem('alan-admin-tab', 'dash'); } catch (e) {} location.href = '/admin?range=' + r.value; });
   });
 
   // —— 内容筛选 ——
@@ -26,162 +26,130 @@
     chip.addEventListener('click', function () {
       var f = chip.getAttribute('data-content-filter');
       document.querySelectorAll('[data-content-filter]').forEach(function (c) {
-        var on = c === chip;
-        c.classList.toggle('tag-outline', on);
-        c.classList.toggle('tag-neutral', !on);
+        var on = c === chip; c.classList.toggle('tag-outline', on); c.classList.toggle('tag-neutral', !on);
       });
-      document.querySelectorAll('#content-rows tr').forEach(function (tr) {
-        tr.hidden = f !== 'all' && tr.getAttribute('data-ctype') !== f;
-      });
+      document.querySelectorAll('#content-rows tr').forEach(function (tr) { tr.hidden = f !== 'all' && tr.getAttribute('data-ctype') !== f; });
     });
   });
 
-  // —— 编辑对话框 ——
+  // —— 编辑弹窗 ——
   var backdrop = document.getElementById('edit-backdrop');
   var fieldsEl = document.getElementById('edit-fields');
   var titleEl = document.getElementById('edit-title');
   var errEl = document.getElementById('edit-error');
-  var current = null; // { type, id }
+  var current = null;
 
   function field(label, name, value, kind, options) {
-    var wrap = document.createElement('div');
-    wrap.className = 'field';
-    var lab = document.createElement('label');
-    lab.textContent = label;
-    wrap.appendChild(lab);
+    var wrap = document.createElement('div'); wrap.className = 'field';
+    var lab = document.createElement('label'); lab.textContent = label; wrap.appendChild(lab);
     var input;
-    if (kind === 'textarea') {
-      input = document.createElement('textarea');
-      input.className = 'input';
-      input.style.minHeight = name === 'content_md' ? '220px' : '90px';
-      input.value = value == null ? '' : value;
-    } else if (kind === 'select') {
-      input = document.createElement('select');
-      input.className = 'input';
-      (options || []).forEach(function (o) {
-        var opt = document.createElement('option');
-        opt.value = o[0]; opt.textContent = o[1];
-        if (o[0] === String(value)) opt.selected = true;
-        input.appendChild(opt);
-      });
-    } else {
-      input = document.createElement('input');
-      input.className = 'input';
-      input.type = kind || 'text';
-      input.value = value == null ? '' : value;
-    }
-    input.setAttribute('data-field', name);
-    wrap.appendChild(input);
-    return wrap;
+    if (kind === 'textarea') { input = document.createElement('textarea'); input.className = 'input'; input.style.minHeight = name === 'content_md' ? '220px' : '80px'; input.value = value == null ? '' : value; }
+    else if (kind === 'select') { input = document.createElement('select'); input.className = 'input'; (options || []).forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; if (o[0] === String(value)) op.selected = true; input.appendChild(op); }); }
+    else { input = document.createElement('input'); input.className = 'input'; input.type = kind || 'text'; input.value = value == null ? '' : value; }
+    input.setAttribute('data-field', name); wrap.appendChild(input); return wrap;
   }
 
   var SCHEMAS = {
-    post: function (d) {
-      d = d || { title: '', category: '行业观察', excerpt: '', content_md: '', read_minutes: 5, status: 'draft' };
-      return [
-        field('标题', 'title', d.title),
-        field('分类（行业观察 / 工具方法 / 专利 / 课程笔记…）', 'category', d.category),
-        field('摘要（列表页展示）', 'excerpt', d.excerpt, 'textarea'),
-        field('正文（Markdown）', 'content_md', d.content_md, 'textarea'),
-        field('阅读时长（分钟）', 'read_minutes', d.read_minutes, 'number'),
-        field('状态', 'status', d.status, 'select', [['published', '已发布'], ['draft', '草稿']]),
-      ];
-    },
-    course: function (d) {
-      d = d || { title: '', description: '', lectures: '', price_yuan: '', status: 'live', tag: '', kicker: '' };
-      return [
-        field('课程名称', 'title', d.title),
-        field('课程介绍', 'description', d.description, 'textarea'),
-        field('讲数', 'lectures', d.lectures, 'number'),
-        field('价格（元，留空为待定）', 'price_yuan', d.price_yuan, 'number'),
-        field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
-        field('角标（热门 / 进阶，可留空）', 'tag', d.tag),
-        field('卡片眉标（如“已上线 · 12 讲”，留空自动生成）', 'kicker', d.kicker),
-      ];
-    },
-    tool: function (d) {
-      d = d || { name: '', description: '', status: 'live', url: '' };
-      return [
-        field('工具名称', 'name', d.name),
-        field('工具介绍', 'description', d.description, 'textarea'),
-        field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
-        field('工具链接（http(s)://…，留空表示接入中）', 'url', d.url),
-      ];
-    },
+    post: function (d) { d = d || { title: '', category: '行业观察', excerpt: '', content_md: '', read_minutes: 5, status: 'draft' }; return [
+      field('标题', 'title', d.title), field('分类', 'category', d.category),
+      field('摘要', 'excerpt', d.excerpt, 'textarea'), field('正文（Markdown）', 'content_md', d.content_md, 'textarea'),
+      field('阅读时长（分钟）', 'read_minutes', d.read_minutes, 'number'),
+      field('状态', 'status', d.status, 'select', [['published', '已发布'], ['draft', '草稿'], ['archived', '已归档']]) ]; },
+    course: function (d) { d = d || { title: '', description: '', lectures: '', price_yuan: '', status: 'live', tag: '', kicker: '', cover_url: '' }; return [
+      field('课程名称', 'title', d.title), field('课程介绍', 'description', d.description, 'textarea'),
+      field('讲数', 'lectures', d.lectures, 'number'), field('价格（元，留空待定）', 'price_yuan', d.price_yuan, 'number'),
+      field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
+      field('角标（热门/进阶，可空）', 'tag', d.tag), field('封面图 URL（可在页面内容上传后填/uploads/...）', 'cover_url', d.cover_url) ]; },
+    tool: function (d) { d = d || { name: '', description: '', status: 'live', url: '' }; return [
+      field('工具名称', 'name', d.name), field('工具介绍', 'description', d.description, 'textarea'),
+      field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
+      field('工具链接（http(s)://，留空=接入中）', 'url', d.url) ]; },
+    case: function (d) { d = d || { org: '', title: '', description: '', metric_value: '', metric_label: '', sort: '' }; return [
+      field('客户描述（如 某暖通企业 · 华东）', 'org', d.org), field('案例标题', 'title', d.title),
+      field('案例说明', 'description', d.description, 'textarea'),
+      field('指标数值（如 85%）', 'metric_value', d.metric_value), field('指标说明', 'metric_label', d.metric_label),
+      field('排序（小在前）', 'sort', d.sort, 'number') ]; },
   };
-  var TYPE_NAMES = { post: '文章', course: '课程', tool: '工具' };
+  var TYPE_NAMES = { post: '文章', course: '课程', tool: '工具', case: '案例' };
 
   function openEditor(type, id) {
     var data = null;
-    if (id != null) {
-      var list = DATA[type + 's'];
-      for (var i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) { data = list[i]; break; }
-    }
+    if (id != null) { var list = DATA[type + 's'] || []; for (var i = 0; i < list.length; i++) if (String(list[i].id) === String(id)) { data = list[i]; break; } }
     current = { type: type, id: id };
     titleEl.textContent = (id != null ? '编辑' : '新建') + TYPE_NAMES[type];
-    errEl.textContent = '';
-    fieldsEl.innerHTML = '';
+    errEl.textContent = ''; fieldsEl.innerHTML = '';
     SCHEMAS[type](data).forEach(function (f) { fieldsEl.appendChild(f); });
     backdrop.hidden = false;
   }
   function closeEditor() { backdrop.hidden = true; current = null; }
 
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest ? e.target.closest('[data-edit]') : null;
-    if (btn) openEditor(btn.getAttribute('data-edit'), btn.getAttribute('data-id'));
+    var edit = e.target.closest ? e.target.closest('[data-edit]') : null;
+    if (edit) { openEditor(edit.getAttribute('data-edit'), edit.getAttribute('data-id')); return; }
+    var del = e.target.closest ? e.target.closest('[data-del]') : null;
+    if (del) { doDelete(del.getAttribute('data-del'), del.getAttribute('data-id'), del.getAttribute('data-name')); return; }
+    var pub = e.target.closest ? e.target.closest('[data-publish]') : null;
+    if (pub) { doPublish(pub.getAttribute('data-publish')); return; }
   });
   document.getElementById('edit-cancel').addEventListener('click', closeEditor);
   backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeEditor(); });
 
-  document.getElementById('btn-new-content').addEventListener('click', function () {
-    var type = prompt('新建内容类型：输入 1=文章，2=课程，3=工具', '1');
-    if (type === '1') openEditor('post', null);
-    else if (type === '2') openEditor('course', null);
-    else if (type === '3') openEditor('tool', null);
+  var newBtn = document.getElementById('btn-new-content');
+  if (newBtn) newBtn.addEventListener('click', function () {
+    var t = prompt('新建类型：1=文章 2=课程 3=工具 4=案例', '1');
+    var map = { '1': 'post', '2': 'course', '3': 'tool', '4': 'case' };
+    if (map[t]) openEditor(map[t], null);
   });
 
   document.getElementById('edit-save').addEventListener('click', function () {
     if (!current) return;
     var payload = { id: current.id != null ? Number(current.id) : undefined };
-    fieldsEl.querySelectorAll('[data-field]').forEach(function (inp) {
-      payload[inp.getAttribute('data-field')] = inp.value;
-    });
+    fieldsEl.querySelectorAll('[data-field]').forEach(function (inp) { payload[inp.getAttribute('data-field')] = inp.value; });
     errEl.textContent = '';
-    fetch('/admin/api/' + current.type, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-      .then(function (res) {
-        if (!res.ok) { errEl.textContent = res.d.error || '保存失败'; return; }
-        try { sessionStorage.setItem('alan-admin-tab', 'content'); } catch (e) {}
-        location.reload();
-      })
-      .catch(function () { errEl.textContent = '网络异常，请稍后再试'; });
+    post('/admin/api/' + current.type, payload, function (ok, d) {
+      if (!ok) { errEl.textContent = d.error || '保存失败'; return; }
+      reloadTo('content');
+    });
   });
 
-  // —— Agent 开关 ——
-  var agentToggle = document.getElementById('agent-toggle');
-  if (agentToggle) {
-    agentToggle.addEventListener('click', function () {
-      var next = agentToggle.getAttribute('data-on') !== '1';
-      fetch('/admin/api/agent', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ autoreply: next })
-      }).then(function (r) { return r.json(); }).then(function () {
-        agentToggle.setAttribute('data-on', next ? '1' : '0');
-        agentToggle.textContent = next ? '已开启' : '已关闭';
-        agentToggle.classList.toggle('tag-accent', next);
-        agentToggle.classList.toggle('tag-neutral', !next);
-      });
+  function doDelete(type, id, name) {
+    var msg = type === 'post' ? '确认下线/删除文章「' + name + '」？（文章先归档，归档后再删才彻底移除）' : '确认删除「' + name + '」？此操作不可恢复。';
+    if (!confirm(msg)) return;
+    post('/admin/api/delete', { type: type, id: Number(id) }, function (ok, d) {
+      if (!ok) { alanToast(d.error || '删除失败'); return; }
+      if (d.note) alanToast(d.note);
+      reloadTo('content');
+    });
+  }
+  function doPublish(id) {
+    if (!confirm('确认发布这篇草稿到前台？')) return;
+    post('/admin/api/post-publish', { id: Number(id) }, function (ok, d) {
+      if (!ok) { alanToast(d.error || '发布失败'); return; }
+      alanToast('已发布'); reloadTo('content');
     });
   }
 
-  // —— 用户搜索 ——
-  var search = document.getElementById('user-search');
-  if (search) {
-    search.addEventListener('input', function () {
-      var q = search.value.trim().toLowerCase();
-      document.querySelectorAll('#user-rows tr').forEach(function (tr) {
-        tr.hidden = q && tr.textContent.toLowerCase().indexOf(q) === -1;
-      });
+  // —— AI 生成草稿 ——
+  var aiBtn = document.getElementById('btn-ai-draft');
+  if (aiBtn) aiBtn.addEventListener('click', function () {
+    var topic = prompt('输入文章选题（如：暖通企业如何用 AI 做竞品分析）', '');
+    if (!topic) return;
+    var outline = prompt('可选：要点/大纲（留空让 AI 自拟）', '') || '';
+    aiBtn.disabled = true; aiBtn.textContent = 'AI 生成中…';
+    post('/admin/api/post-generate', { topic: topic, outline: outline }, function (ok, d) {
+      aiBtn.disabled = false; aiBtn.textContent = '✎ AI 生成草稿';
+      if (!ok) { alanToast(d.error || '生成失败'); return; }
+      alanToast('草稿已生成：' + d.title + '（在待审草稿中审核发布）'); reloadTo('content');
     });
+  });
+
+  // —— 工具 ——
+  function post(url, body, cb) {
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) { cb(res.ok, res.d); })
+      .catch(function () { cb(false, { error: '网络异常' }); });
   }
+  function reloadTo(tab) { try { sessionStorage.setItem('alan-admin-tab', tab); } catch (e) {} location.reload(); }
+  window.AdminPost = post; window.AdminReloadTo = reloadTo;
 })();

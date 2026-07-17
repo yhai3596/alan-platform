@@ -101,18 +101,18 @@ router.post('/comments', rateLimit('comment', 12, 600e3), requireLogin, async (r
   if (text.length < 2 || text.length > 1000) return res.status(400).json({ error: '评论内容需在 2–1000 字之间' });
 
   const u = req.session.user;
-  const r = db.prepare('INSERT INTO comments(post_id,user_id,author_name,body) VALUES (?,?,?,?)')
+  const r = db.prepare("INSERT INTO comments(post_id,user_id,author_name,body,agent_status) VALUES (?,?,?,?,'pending')")
     .run(post.id, u.id, u.name, text);
   const comment = db.prepare('SELECT * FROM comments WHERE id=?').get(r.lastInsertRowid);
 
-  // Agent 自动回复：最多等 9 秒，超时则后台继续（下次刷新可见）
+  // Agent 即时回复：最多等 9 秒；超时/失败保持 pending，站内 Worker 会自动补处理
   let agentReply = null;
   try {
-    const p = agent.commentAutoReply(post.id, comment.id, text);
+    const p = agent.commentAutoReply(post.id, comment.id, text, 'system:即时');
     agentReply = await Promise.race([p, new Promise(rv => setTimeout(() => rv(null), 9000))]);
-    if (!agentReply) p.catch(e => console.warn('[agent] 后台自动回复失败：', e.message));
+    if (!agentReply) p.catch(e => console.warn('[agent] 后台自动回复失败（Worker 将补处理）：', e.message));
   } catch (e) {
-    console.warn('[agent] 自动回复失败：', e.message);
+    console.warn('[agent] 自动回复失败（Worker 将补处理）：', e.message);
   }
   res.json({ ok: true, comment, agentReply });
 });
