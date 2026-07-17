@@ -14,3 +14,10 @@
   后台看板真实聚合（PV/UV/趋势/来源/漏斗/完读率）、内容 CRUD、限流与权限
 - 产出部署包 deploy-alan-sg.sh + autopull-alan.sh + docs/DEPLOY.md，推送 GitHub（public）
 - 遗留：服务器控制台一条命令待用户执行（SSH 被拦无法代办）；可选 GLM/SMTP 配置见 DEPLOY.md
+
+## 2026-07-17 · 后台优化 v1.1.0（Phase A–F 全落地）
+- 用户4点诉求→拆6阶段(A案例CRUD+删除/B配置底座/C AI草稿/D诊断知识库/E Agent API+Worker/F文案键值化+图片)
+- 后端先行全部测通，界面因多次中断+超大单文件写入触发 Claude 服务报错(误当网站500查了很久)→改拆分片include解决
+- 两个真实坑:①14个僵尸node进程占8201跑旧坏代码=用户看到的"server error" ②Windows Git Bash curl发中文按GBK编码污染DB=首页标题乱码;均已定位修复,content.save加U+FFFD防线
+- v1.1.0 已提交推送(bef3439),仓库public+线上200,autopull将拉取
+- 验证:冒烟14/14+五页签浏览器实测+Agent API端到端+前台零乱码
