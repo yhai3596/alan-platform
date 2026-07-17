@@ -81,32 +81,64 @@
 
 <% if (user) { %>
 <script>
-document.getElementById('comment-form').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var btn = document.getElementById('comment-submit');
-  var msg = document.getElementById('comment-msg');
-  var body = document.getElementById('comment-body').value.trim();
-  msg.textContent = '';
-  if (body.length < 2) { msg.textContent = '评论内容太短了'; return; }
-  btn.disabled = true;
-  btn.textContent = '发表中…';
-  fetch('/api/comments', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ post_id: <%= post.id %>, body: body })
-  }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-    .then(function (res) {
-      if (!res.ok) {
+(function () {
+  var form = document.getElementById('comment-form');
+  var list = document.getElementById('comment-list');
+  function el(tag, css, text) { var e = document.createElement(tag); if (css) e.style.cssText = css; if (text != null) e.textContent = text; return e; }
+
+  function renderReply(slot, reply) {
+    var box = el('div', 'margin:20px 0 0 28px;padding:20px;border-left:2px solid var(--color-accent);background:var(--color-neutral-100)');
+    var head = el('div', 'display:flex;align-items:baseline;gap:9.2px;flex-wrap:wrap;font-size:13px');
+    head.appendChild(el('span', "font-family:'Cormorant Garamond','Noto Serif SC',serif;font-size:16px", reply.author_name || 'Alan'));
+    if (reply.agent_label) { var t = el('span', null, reply.agent_label); t.className = 'tag ' + (reply.is_agent ? 'tag-accent' : 'tag-outline'); head.appendChild(t); }
+    box.appendChild(head);
+    box.appendChild(el('p', 'font-size:14px;line-height:25px;margin:9.2px 0 0;color:color-mix(in srgb, var(--color-text) 82%, transparent)', reply.body));
+    slot.innerHTML = ''; slot.appendChild(box);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('comment-submit');
+    var msg = document.getElementById('comment-msg');
+    var ta = document.getElementById('comment-body');
+    var body = ta.value.trim();
+    msg.textContent = '';
+    if (body.length < 2) { msg.textContent = '评论内容太短了'; return; }
+    btn.disabled = true; btn.textContent = '发表中…';
+    fetch('/api/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ post_id: <%= post.id %>, body: body }) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
         btn.disabled = false; btn.textContent = '发表评论';
-        msg.textContent = res.d.error || '发表失败，请稍后再试';
-        return;
-      }
-      location.reload();
-    })
-    .catch(function () {
-      btn.disabled = false; btn.textContent = '发表评论';
-      msg.textContent = '网络异常，请稍后再试';
-    });
-});
+        if (!res.ok) { msg.textContent = res.d.error || '发表失败，请稍后再试'; return; }
+        ta.value = '';
+        var c = res.d.comment;
+        var ph = list.querySelector('p'); if (ph && ph.textContent.indexOf('还没有评论') >= 0) ph.remove();
+        var card = el('div', 'padding:28px 0;border-bottom:1px solid var(--color-divider)');
+        var head = el('div', 'display:flex;align-items:baseline;gap:13.8px;font-size:13px');
+        head.appendChild(el('span', "font-family:'Cormorant Garamond','Noto Serif SC',serif;font-size:16px", c.author_name));
+        head.appendChild(el('span', 'color:var(--color-neutral-600)', '刚刚'));
+        card.appendChild(head);
+        card.appendChild(el('p', 'font-size:14.5px;line-height:26px;margin:13.8px 0 0;color:color-mix(in srgb, var(--color-text) 82%, transparent)', c.body));
+        var slot = el('div', null);
+        var note = el('p', 'margin:14px 0 0 28px;font-size:12.5px;color:var(--color-neutral-600)', '🦞 小龙虾正在查看是否需要回复…');
+        slot.appendChild(note);
+        card.appendChild(slot);
+        list.appendChild(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        var tries = 0;
+        (function poll() {
+          tries++;
+          fetch('/api/comments/' + c.id + '/reply-status').then(function (r) { return r.json(); }).then(function (d) {
+            if (d.reply) { renderReply(slot, d.reply); return; }
+            if (d.status === 'skipped') { note.textContent = '该评论已转 Alan 本人回复。'; return; }
+            if (tries >= 8) { note.textContent = '回复稍后可见，刷新即可查看。'; return; }
+            setTimeout(poll, 1500);
+          }).catch(function () { if (tries >= 8) note.textContent = ''; else setTimeout(poll, 1500); });
+        })();
+      })
+      .catch(function () { btn.disabled = false; btn.textContent = '发表评论'; msg.textContent = '网络异常，请稍后再试'; });
+  });
+})();
 </script>
 <% } %>
 <%- include('partials/tail') %>

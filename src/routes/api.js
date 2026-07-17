@@ -105,16 +105,21 @@ router.post('/comments', rateLimit('comment', 12, 600e3), requireLogin, async (r
     .run(post.id, u.id, u.name, text);
   const comment = db.prepare('SELECT * FROM comments WHERE id=?').get(r.lastInsertRowid);
 
-  // Agent 即时回复：最多等 9 秒；超时/失败保持 pending，站内 Worker 会自动补处理
-  let agentReply = null;
-  try {
-    const p = agent.commentAutoReply(post.id, comment.id, text, 'system:即时');
-    agentReply = await Promise.race([p, new Promise(rv => setTimeout(() => rv(null), 9000))]);
-    if (!agentReply) p.catch(e => console.warn('[agent] 后台自动回复失败（Worker 将补处理）：', e.message));
-  } catch (e) {
-    console.warn('[agent] 自动回复失败（Worker 将补处理）：', e.message);
-  }
-  res.json({ ok: true, comment, agentReply });
+  // 立即返回（不阻塞）；Agent 自动回复在后台异步进行，前端轮询 /reply-status 获取。
+  // 失败/超时保持 pending，站内 Worker 会自动补处理。
+  res.json({ ok: true, comment });
+  Promise.resolve()
+    .then(() => agent.commentAutoReply(post.id, comment.id, text, 'system:即时'))
+    .catch(e => console.warn('[agent] 自动回复失败（Worker 将补处理）：', e.message));
+});
+
+// 评论的 Agent 回复状态（前端发表后轮询）
+router.get('/comments/:id/reply-status', (req, res) => {
+  const id = Number(req.params.id);
+  const parent = db.prepare('SELECT id, agent_status FROM comments WHERE id=? AND parent_id IS NULL AND is_agent=0').get(id);
+  if (!parent) return res.status(404).json({ error: '评论不存在' });
+  const reply = db.prepare('SELECT author_name, body, agent_label, created_at, is_agent FROM comments WHERE parent_id=? ORDER BY id LIMIT 1').get(id);
+  res.json({ ok: true, status: parent.agent_status || 'pending', reply: reply || null });
 });
 
 // —— 悬浮智能助手 ——
