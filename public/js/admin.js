@@ -89,7 +89,9 @@
     var edit = e.target.closest ? e.target.closest('[data-edit]') : null;
     if (edit) { openEditor(edit.getAttribute('data-edit'), edit.getAttribute('data-id')); return; }
     var del = e.target.closest ? e.target.closest('[data-del]') : null;
-    if (del) { doDelete(del.getAttribute('data-del'), del.getAttribute('data-id'), del.getAttribute('data-name')); return; }
+    if (del) { doDelete(del.getAttribute('data-del'), del.getAttribute('data-id'), del.getAttribute('data-name'), del.getAttribute('data-archived') === '1'); return; }
+    var rst = e.target.closest ? e.target.closest('[data-restore]') : null;
+    if (rst) { doRestore(rst.getAttribute('data-restore'), rst.getAttribute('data-id')); return; }
     var pub = e.target.closest ? e.target.closest('[data-publish]') : null;
     if (pub) { doPublish(pub.getAttribute('data-publish')); return; }
   });
@@ -124,12 +126,21 @@
     });
   });
 
-  function doDelete(type, id, name) {
-    var msg = type === 'post' ? '确认下线/删除文章「' + name + '」？（文章先归档，归档后再删才彻底移除）' : '确认删除「' + name + '」？此操作不可恢复。';
+  function doDelete(type, id, name, archived) {
+    var msg = archived
+      ? '确认彻底删除「' + name + '」？此操作不可恢复' + (type === 'post' ? '，评论与统计一并移除' : '') + '。'
+      : '确认下线「' + name + '」？将从前台隐藏' + (type === 'post' ? '（保留评论与统计）' : '') + '，可在后台恢复；再次点删除才彻底移除。';
     if (!confirm(msg)) return;
     post('/admin/api/delete', { type: type, id: Number(id) }, function (ok, d) {
       if (!ok) { alanToast(d.error || '删除失败'); return; }
       if (d.note) alanToast(d.note);
+      reloadTo('content');
+    });
+  }
+  function doRestore(type, id) {
+    post('/admin/api/restore', { type: type, id: Number(id) }, function (ok, d) {
+      if (!ok) { alanToast(d.error || '恢复失败'); return; }
+      alanToast('已恢复，前台重新显示');
       reloadTo('content');
     });
   }

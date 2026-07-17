@@ -216,7 +216,10 @@ router.post('/admin/api/case', requireAdminApi, (req, res) => {
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
-// 删除：文章两段式（先归档，归档态再删=彻底删除，评论级联）；课程/工具/案例直接删除
+// 可归档实体（文章走 posts.status，不在此表）
+const ENTITY_TABLES = { course: 'courses', tool: 'tools', case: 'cases' };
+
+// 删除：四类统一两段式——首次=归档下线（前台隐藏、可恢复），归档态再删=彻底移除（文章评论级联）
 router.post('/admin/api/delete', requireAdminApi, (req, res) => {
   const { type, id } = req.body || {};
   const n = Number(id);
@@ -232,13 +235,30 @@ router.post('/admin/api/delete', requireAdminApi, (req, res) => {
     config.logActivity('admin', 'post_delete', `post#${n}`, p.title.slice(0, 50), true);
     return res.json({ ok: true, deleted: true });
   }
-  const tables = { course: 'courses', tool: 'tools', case: 'cases' };
-  const table = tables[type];
+  const table = ENTITY_TABLES[type];
   if (!table) return res.status(400).json({ error: '未知类型' });
-  const r = db.prepare(`DELETE FROM ${table} WHERE id=?`).run(n);
-  if (!r.changes) return res.status(404).json({ error: '记录不存在' });
+  const row = db.prepare(`SELECT id, archived FROM ${table} WHERE id=?`).get(n);
+  if (!row) return res.status(404).json({ error: '记录不存在' });
+  if (!row.archived) {
+    db.prepare(`UPDATE ${table} SET archived=1 WHERE id=?`).run(n);
+    config.logActivity('admin', `${type}_archive`, `${type}#${n}`, '', true);
+    return res.json({ ok: true, archived: true, note: '已归档下线（前台已隐藏，可恢复；再次删除将彻底移除）' });
+  }
+  db.prepare(`DELETE FROM ${table} WHERE id=?`).run(n);
   config.logActivity('admin', `${type}_delete`, `${type}#${n}`, '', true);
   res.json({ ok: true, deleted: true });
+});
+
+// 恢复归档：课程/工具/案例（文章走 post-publish 复位状态）
+router.post('/admin/api/restore', requireAdminApi, (req, res) => {
+  const { type, id } = req.body || {};
+  const table = ENTITY_TABLES[type];
+  if (!table) return res.status(400).json({ error: '未知类型' });
+  const n = Number(id);
+  const r = db.prepare(`UPDATE ${table} SET archived=0 WHERE id=?`).run(n);
+  if (!r.changes) return res.status(404).json({ error: '记录不存在' });
+  config.logActivity('admin', `${type}_restore`, `${type}#${n}`, '', true);
+  res.json({ ok: true });
 });
 
 // ============================================================ Agent 自动化配置

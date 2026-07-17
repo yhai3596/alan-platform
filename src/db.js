@@ -148,6 +148,11 @@ function addColumn(table, colDef) {
 addColumn('posts', "created_by TEXT NOT NULL DEFAULT 'admin'");     // admin | ai | agent:<name>
 addColumn('comments', 'agent_status TEXT');                          // NULL/pending=待自动处理 replied/skipped=已终态
 addColumn('courses', "cover_url TEXT NOT NULL DEFAULT ''");
+// 两段式删除：0=正常 1=已归档（前台隐藏、后台可恢复），归档态再删才物理移除。
+// 用独立列而非复用 status——courses/tools 的 status 已表示业务态（live=已上线 / coming=筹备中），两者正交。
+addColumn('courses', 'archived INTEGER NOT NULL DEFAULT 0');
+addColumn('tools', 'archived INTEGER NOT NULL DEFAULT 0');
+addColumn('cases', 'archived INTEGER NOT NULL DEFAULT 0');
 // 存量评论：已有回复的顶层评论视为已处理，避免 Worker 重复回帖
 db.exec(`UPDATE comments SET agent_status='replied'
   WHERE parent_id IS NULL AND agent_status IS NULL

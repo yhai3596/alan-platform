@@ -60,35 +60,35 @@
           <td><%= p.title %></td><td>文章</td>
           <td><span class="tag <%= p.status === 'published' ? 'tag-accent' : (p.status === 'archived' ? 'tag-neutral' : 'tag-neutral') %>"><%= p.status === 'published' ? '已发布' : (p.status === 'archived' ? '已归档' : '草稿') %></span></td>
           <td class="tnum"><%= fmtDate(p.published_at || p.updated_at) %></td>
-          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="post" data-id="<%= p.id %>">编辑</button><button type="button" class="btn btn-ghost" data-del="post" data-id="<%= p.id %>" data-name="<%= p.title %>" style="color:#a33d2e"><%= p.status === 'archived' ? '删除' : '下线' %></button></td>
+          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="post" data-id="<%= p.id %>">编辑</button><button type="button" class="btn btn-ghost" data-del="post" data-id="<%= p.id %>" data-name="<%= p.title %>" data-archived="<%= p.status === 'archived' ? 1 : 0 %>" style="color:#a33d2e"><%= p.status === 'archived' ? '删除' : '下线' %></button></td>
         </tr>
         <% } %>
         <% for (const c of courses) { %>
         <tr data-ctype="course">
           <td><%= c.title %></td><td>课程</td>
-          <td><span class="tag <%= c.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= c.status === 'live' ? '已发布' : '筹备中' %></span></td>
+          <td><% if (c.archived) { %><span class="tag tag-neutral">已归档</span><% } else { %><span class="tag <%= c.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= c.status === 'live' ? '已发布' : '筹备中' %></span><% } %></td>
           <td class="tnum"><%= fmtDate(c.updated_at) %></td>
-          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="course" data-id="<%= c.id %>">编辑</button><button type="button" class="btn btn-ghost" data-del="course" data-id="<%= c.id %>" data-name="<%= c.title %>" style="color:#a33d2e">删除</button></td>
+          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="course" data-id="<%= c.id %>">编辑</button><% if (c.archived) { %><button type="button" class="btn btn-ghost" data-restore="course" data-id="<%= c.id %>">恢复</button><% } %><button type="button" class="btn btn-ghost" data-del="course" data-id="<%= c.id %>" data-name="<%= c.title %>" data-archived="<%= c.archived ? 1 : 0 %>" style="color:#a33d2e"><%= c.archived ? '删除' : '下线' %></button></td>
         </tr>
         <% } %>
         <% for (const t of tools) { %>
         <tr data-ctype="tool">
           <td><%= t.name %></td><td>工具</td>
-          <td><span class="tag <%= t.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= t.status === 'live' ? '已发布' : '筹备中' %></span></td>
+          <td><% if (t.archived) { %><span class="tag tag-neutral">已归档</span><% } else { %><span class="tag <%= t.status === 'live' ? 'tag-accent' : 'tag-neutral' %>"><%= t.status === 'live' ? '已发布' : '筹备中' %></span><% } %></td>
           <td class="tnum"><%= fmtDate(t.updated_at) %></td>
-          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="tool" data-id="<%= t.id %>">编辑</button><button type="button" class="btn btn-ghost" data-del="tool" data-id="<%= t.id %>" data-name="<%= t.name %>" style="color:#a33d2e">删除</button></td>
+          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="tool" data-id="<%= t.id %>">编辑</button><% if (t.archived) { %><button type="button" class="btn btn-ghost" data-restore="tool" data-id="<%= t.id %>">恢复</button><% } %><button type="button" class="btn btn-ghost" data-del="tool" data-id="<%= t.id %>" data-name="<%= t.name %>" data-archived="<%= t.archived ? 1 : 0 %>" style="color:#a33d2e"><%= t.archived ? '删除' : '下线' %></button></td>
         </tr>
         <% } %>
         <% for (const cs of cases) { %>
         <tr data-ctype="case">
           <td><%= cs.title %></td><td>案例</td>
-          <td><span class="tag tag-accent"><%= cs.org %></span></td>
+          <td><% if (cs.archived) { %><span class="tag tag-neutral">已归档</span><% } else { %><span class="tag tag-accent"><%= cs.org %></span><% } %></td>
           <td class="tnum">—</td>
-          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="case" data-id="<%= cs.id %>">编辑</button><button type="button" class="btn btn-ghost" data-del="case" data-id="<%= cs.id %>" data-name="<%= cs.title %>" style="color:#a33d2e">删除</button></td>
+          <td style="text-align:right;white-space:nowrap"><button type="button" class="btn btn-ghost" data-edit="case" data-id="<%= cs.id %>">编辑</button><% if (cs.archived) { %><button type="button" class="btn btn-ghost" data-restore="case" data-id="<%= cs.id %>">恢复</button><% } %><button type="button" class="btn btn-ghost" data-del="case" data-id="<%= cs.id %>" data-name="<%= cs.title %>" data-archived="<%= cs.archived ? 1 : 0 %>" style="color:#a33d2e"><%= cs.archived ? '删除' : '下线' %></button></td>
         </tr>
         <% } %>
       </tbody>
     </table>
   </div>
-  <p style="font-size:12px;color:var(--color-neutral-600);margin-top:14px">文章"下线"= 归档软删（保留评论与统计），归档后再点"删除"才彻底移除；课程/工具/案例为直接删除。发布后前台即时更新。</p>
+  <p style="font-size:12px;color:var(--color-neutral-600);margin-top:14px">四类内容统一两段式：先点"下线"= 归档（前台立即隐藏，文章保留评论与统计），归档后再点"删除"才彻底移除。误删可在归档态点"恢复"（文章改用"编辑→状态→已发布"）。归档与课程/工具的"筹备中"是两套独立状态，互不影响。</p>
 </div>

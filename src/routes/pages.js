@@ -21,7 +21,7 @@ router.get('/services', (req, res) => {
 });
 
 router.get('/tools', (req, res) => {
-  const tools = db.prepare('SELECT * FROM tools ORDER BY no').all();
+  const tools = db.prepare('SELECT * FROM tools WHERE archived=0 ORDER BY no').all();
   res.render('tools', { title: '工具集 · Alan · HVAC × AI', active: '工具集', tools });
 });
 
@@ -54,12 +54,12 @@ router.get('/article/:slug', (req, res) => {
 });
 
 router.get('/cases', (req, res) => {
-  const cases = db.prepare('SELECT * FROM cases ORDER BY sort').all();
+  const cases = db.prepare('SELECT * FROM cases WHERE archived=0 ORDER BY sort').all();
   res.render('cases', { title: '案例与培训 · Alan · HVAC × AI', active: '案例·培训', cases });
 });
 
 router.get('/courses', (req, res) => {
-  const courses = db.prepare('SELECT * FROM courses ORDER BY no').all();
+  const courses = db.prepare('SELECT * FROM courses WHERE archived=0 ORDER BY no').all();
   res.render('courses', { title: 'AI 课程 · Alan · HVAC × AI', active: 'AI课程', courses });
 });
 
