@@ -8,7 +8,8 @@
     "dev": "set SEED_DEMO=1&& node server.js",
     "postinstall": "node scripts/copy-fonts.js",
     "smoke": "node scripts/smoke.js",
-    "backup": "node scripts/backup-db.js"
+    "backup": "node scripts/backup-db.js",
+    "pull-backups": "node scripts/pull-backups.js"
   },
   "engines": {
     "node": ">=20"

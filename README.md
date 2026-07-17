@@ -96,6 +96,31 @@ node scripts/backup-db.js --dir /mnt/backup   # 自定义目录
 **恢复**：停服 → 删除 `app.db`、`app.db-wal`、`app.db-shm` → 把备份文件复制为 `app.db` → 启动（应用会自动转回 WAL 模式）。
 已做恢复演练验证：前台内容、用户账号、登录能力均随备份完整恢复。
 
+### 异地拉取（本机 = 异地备份点）
+
+上面的备份与数据库**同机同盘**，只能防误删改错，防不了整机故障。`pull-backups.js` 把服务器备份拉到本机补上这一环：
+
+```bash
+npm run pull-backups                          # 服务器先生成新备份，再拉取本地缺失的
+node scripts/pull-backups.js --no-fresh       # 只拉服务器已有的，不新生成
+node scripts/pull-backups.js --dir D:/备份 --keep 60
+```
+
+默认落 `data/backups-remote/`（与本地备份 `data/backups/` 分开存，互不干扰），保留最近 30 份。
+每份拉回后立即做完整性与非空校验，不合格即丢弃；拉取中先落 `.part` 临时文件、校验通过才改名，
+避免中断留下的半截文件因文件名对得上而被永久当作「已拉取」跳过。
+
+**前置：本机公钥需已授权到服务器。** 在云控制台的网页终端执行一次（仅需一次）：
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo "<本机 ~/.ssh/id_ed25519.pub 的内容>" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+```
+
+未授权时脚本会直接把这段命令（已填好本机公钥）打印出来。服务器信息可用 `--host/--user/--key` 或
+`ALAN_SSH_HOST/ALAN_SSH_USER/ALAN_SSH_KEY` 覆盖，默认 `root@43.156.58.154`。
+用 scp 而非 rsync：Windows 本机无 rsync，ssh/scp 是 Win10+ 自带；增量比对由脚本按文件名做（备份名含时间戳、内容不可变）。
+
 ## 环境变量
 
 见 [.env.example](.env.example)。关键项：`SESSION_SECRET`（必配）、`Z_AI_API_KEY`（可选 LLM）、`SMTP_*`（可选邮件）。

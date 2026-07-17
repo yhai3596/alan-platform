@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v1.3.2 — 2026-07-17
+
+**新增异地拉取脚本** `scripts/pull-backups.js`（`npm run pull-backups`）：
+
+- **动机**：`backup-db.js` 的备份与数据库同机同盘，只防误删改错，防不了整机故障。本机即天然异地点。
+- 默认先 ssh 让服务器生成最新备份，再拉取本地缺失的（`--no-fresh` 可跳过）。落 `data/backups-remote/`，与本地备份 `data/backups/` 分开存，保留最近 30 份（`--keep` 可调）。
+- **用 scp 不用 rsync**：本机（Windows）无 rsync，ssh/scp 是 Win10+ 自带 OpenSSH。增量比对由脚本按文件名做——备份名含 UTC 时间戳且内容不可变，文件名即身份。
+- **先落 `.part`、校验通过才改名**：否则 scp 中断留下的半截文件会因文件名对得上而被永久当作「已拉取」跳过，那份备份就悄悄丢了。每份拉回后做 `integrity_check` + 非空校验，不合格即丢弃并非零退出。
+- `BatchMode=yes` 认证失败即退（无人值守不卡在密码提示）；指定 `--key` 时带 `IdentitiesOnly=yes`，避免轮试本机所有密钥触发服务端 MaxAuthTries。
+- 未授权时不抛 ssh 原始报错，而是打印**已填好本机公钥**的授权命令，可直接粘到云控制台执行。
+- **已测**：连接失败路径（Permission denied → 输出可执行的修复指引，退出码 1）、主机不可达（干净超时不挂死）。
+  **未测**：拉取主流程（列远端→比对→scp→校验→保留）——本机公钥尚未授权到服务器，无 SSH 通道，待授权后补真实端到端验证。
+
 ## v1.3.1 — 2026-07-17
 
 **新增数据库备份脚本** `scripts/backup-db.js`（`npm run backup`）：
