@@ -4,7 +4,15 @@
     <h1 style="font-weight:400;font-size:34px;margin:0">内容管理</h1>
     <div style="display:flex;gap:9.2px;flex-wrap:wrap">
       <button type="button" class="btn btn-secondary" id="btn-ai-draft">✎ AI 生成草稿</button>
-      <button type="button" class="btn btn-primary" id="btn-new-content">+ 新建内容</button>
+      <div style="position:relative;display:inline-block">
+        <button type="button" class="btn btn-primary" id="btn-new-content" aria-haspopup="menu" aria-expanded="false">+ 新建内容 ▾</button>
+        <div id="new-menu" role="menu" hidden style="position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:150px;padding:6px;display:flex;flex-direction:column;gap:2px;background:var(--color-bg);border:1px solid var(--color-divider);box-shadow:0 10px 30px rgba(0,0,0,.12)">
+          <button type="button" class="btn btn-ghost" role="menuitem" data-new="post" style="width:100%;justify-content:flex-start">文章</button>
+          <button type="button" class="btn btn-ghost" role="menuitem" data-new="course" style="width:100%;justify-content:flex-start">课程</button>
+          <button type="button" class="btn btn-ghost" role="menuitem" data-new="tool" style="width:100%;justify-content:flex-start">工具</button>
+          <button type="button" class="btn btn-ghost" role="menuitem" data-new="case" style="width:100%;justify-content:flex-start">案例</button>
+        </div>
+      </div>
     </div>
   </div>
 

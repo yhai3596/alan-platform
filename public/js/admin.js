@@ -84,6 +84,8 @@
   function closeEditor() { backdrop.hidden = true; current = null; }
 
   document.addEventListener('click', function (e) {
+    var nw = e.target.closest ? e.target.closest('[data-new]') : null;
+    if (nw) { closeNewMenu(); openEditor(nw.getAttribute('data-new'), null); return; }
     var edit = e.target.closest ? e.target.closest('[data-edit]') : null;
     if (edit) { openEditor(edit.getAttribute('data-edit'), edit.getAttribute('data-id')); return; }
     var del = e.target.closest ? e.target.closest('[data-del]') : null;
@@ -95,11 +97,21 @@
   backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeEditor(); });
 
   var newBtn = document.getElementById('btn-new-content');
-  if (newBtn) newBtn.addEventListener('click', function () {
-    var t = prompt('新建类型：1=文章 2=课程 3=工具 4=案例', '1');
-    var map = { '1': 'post', '2': 'course', '3': 'tool', '4': 'case' };
-    if (map[t]) openEditor(map[t], null);
-  });
+  var newMenu = document.getElementById('new-menu');
+  function closeNewMenu() {
+    if (!newMenu || newMenu.hidden) return;
+    newMenu.hidden = true; newBtn.setAttribute('aria-expanded', 'false');
+  }
+  if (newBtn && newMenu) {
+    newBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = newMenu.hidden;
+      newMenu.hidden = !open;
+      newBtn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', closeNewMenu);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNewMenu(); });
+  }
 
   document.getElementById('edit-save').addEventListener('click', function () {
     if (!current) return;
