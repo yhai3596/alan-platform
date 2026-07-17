@@ -65,6 +65,7 @@ router.get('/admin', requireAdmin, (req, res) => {
     tokens: db.prepare('SELECT id,name,revoked,last_used_at,created_at FROM api_tokens ORDER BY id DESC').all(),
     drafts: posts.filter(p => p.status === 'draft'),
     llmCfgView: { base: llmCfg.base, model: llmCfg.model, keyMasked: config.maskKey(llmCfg.key), configured: !!llmCfg.key },
+    llmProviders: config.llmProvidersView(),
     workerLastTick: getSetting('worker_last_tick', null),
     // 页面内容 / 诊断知识库
     contentList: content.listForAdmin(),
@@ -249,17 +250,47 @@ router.post('/admin/api/agent', requireAdminApi, (req, res) => {
   res.json({ ok: true, modes: config.agentModes() });
 });
 
-router.post('/admin/api/llm', requireAdminApi, (req, res) => {
-  const { key, base, model } = req.body || {};
-  config.saveLlmConfig({ key, base, model });
-  const cfg = config.llmConfig();
-  config.logActivity('admin', 'llm_config', '', `model=${cfg.model} base=${cfg.base}`, true);
-  res.json({ ok: true, keyMasked: config.maskKey(cfg.key), base: cfg.base, model: cfg.model, configured: !!cfg.key });
+// 新增/更新一个 LLM provider（key 传空=保留原 key）
+router.post('/admin/api/llm-provider', requireAdminApi, (req, res) => {
+  const { id, name, base, model, key, enabled } = req.body || {};
+  if (!String(name || '').trim()) return res.status(400).json({ error: '请给这个 LLM 起个名字' });
+  if (!String(base || '').trim() || !String(model || '').trim()) return res.status(400).json({ error: 'Base URL 和模型必填' });
+  try {
+    config.saveProvider({ id, name, base, model, key, enabled });
+    config.logActivity('admin', 'llm_provider_save', String(name), `${model} @ ${base}`, true);
+    res.json({ ok: true, providers: config.llmProvidersView() });
+  } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+router.post('/admin/api/llm-provider-delete', requireAdminApi, (req, res) => {
+  config.deleteProvider(String((req.body || {}).id));
+  config.logActivity('admin', 'llm_provider_delete', String((req.body || {}).id), '', true);
+  res.json({ ok: true, providers: config.llmProvidersView() });
+});
+
+router.post('/admin/api/llm-provider-toggle', requireAdminApi, (req, res) => {
+  config.toggleProvider(String((req.body || {}).id), !!(req.body || {}).enabled);
+  res.json({ ok: true, providers: config.llmProvidersView() });
+});
+
+router.post('/admin/api/llm-provider-order', requireAdminApi, (req, res) => {
+  const ids = (req.body || {}).ids;
+  if (Array.isArray(ids)) { config.reorderProviders(ids.map(String)); config.logActivity('admin', 'llm_provider_order', '', ids.length + ' 项', true); }
+  res.json({ ok: true, providers: config.llmProvidersView() });
+});
+
+// 测试连接：带 {id} 测已存 provider；或带 {base,model,key} 测临时输入
 router.post('/admin/api/llm-test', requireAdminApi, async (req, res) => {
-  const r = await llm.testConnection();
-  config.logActivity('admin', 'llm_test', '', r.ok ? `${r.model} ${r.latencyMs}ms` : `失败：${r.error}`, r.ok);
+  const { id, base, model, key } = req.body || {};
+  let override = null;
+  if (id) {
+    const p = config.llmProviders().find(x => x.id === id);
+    if (p) override = { name: p.name, base: p.base, model: p.model, key: p.key };
+  } else if (base && model && key) {
+    override = { name: '临时测试', base: String(base).replace(/\/$/, ''), model: model, key: key };
+  }
+  const r = await llm.testConnection(override);
+  config.logActivity('admin', 'llm_test', r.name || '', r.ok ? `${r.model} ${r.latencyMs}ms` : `失败：${r.error}`, r.ok);
   res.json(r);
 });
 

@@ -32,18 +32,47 @@
     </div>
   </div>
 
-  <!-- LLM 配置 -->
+  <!-- LLM 配置（多 provider + 故障切换）-->
   <div class="card" style="padding:24px;margin-top:20px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="card-kicker">LLM 配置（智谱 GLM / Z.AI）</span><span style="font-size:12px;color:var(--color-neutral-600)">Key 只存服务端，永不回显明文</span></div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;max-width:560px">
-      <div class="field"><label>API Key<% if (llmCfgView.configured) { %> · 当前 <%= llmCfgView.keyMasked %><% } %></label><input class="input" id="llm-key" type="password" placeholder="<%= llmCfgView.configured ? '留空则不改；输入新值覆盖' : 'sk-... 或 glm key' %>"></div>
-      <div class="grid-form2">
-        <div class="field"><label>Base URL</label><input class="input" id="llm-base" value="<%= llmCfgView.base %>"></div>
-        <div class="field"><label>模型</label><input class="input" id="llm-model" value="<%= llmCfgView.model %>"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="card-kicker">LLM 配置 · 多路故障切换</span><span style="font-size:12px;color:var(--color-neutral-600)">按顺序尝试，失败自动切下一个 · Key 只存服务端脱敏回显</span></div>
+
+    <table class="table" style="margin-top:12px" id="llm-table">
+      <thead><tr><th style="width:40px">优先</th><th>名称</th><th>模型</th><th>Base</th><th>Key</th><th>启用</th><th style="text-align:right">操作</th></tr></thead>
+      <tbody id="llm-rows">
+        <% llmProviders.forEach(function (p, i) { %>
+        <tr data-llm-id="<%= p.id %>">
+          <td class="tnum"><%= i + 1 %></td>
+          <td><%= p.name %></td>
+          <td class="tnum"><%= p.model %></td>
+          <td style="max-width:200px;white-space:normal;font-size:12px;color:var(--color-neutral-600)"><%= p.base %></td>
+          <td class="tnum"><%= p.keyMasked %></td>
+          <td><button type="button" class="tag <%= p.enabled ? 'tag-accent' : 'tag-neutral' %>" data-llm-toggle="<%= p.id %>" data-on="<%= p.enabled ? '1' : '0' %>" style="cursor:pointer"><%= p.enabled ? '启用' : '停用' %></button></td>
+          <td style="text-align:right;white-space:nowrap">
+            <button type="button" class="btn btn-ghost" data-llm-up="<%= p.id %>" title="上移">↑</button>
+            <button type="button" class="btn btn-ghost" data-llm-down="<%= p.id %>" title="下移">↓</button>
+            <button type="button" class="btn btn-ghost" data-llm-test="<%= p.id %>">测试</button>
+            <button type="button" class="btn btn-ghost" data-llm-del="<%= p.id %>" data-name="<%= p.name %>" style="color:#a33d2e">删除</button>
+          </td>
+        </tr>
+        <% }); %>
+        <% if (!llmProviders.length) { %><tr><td colspan="7" style="color:var(--color-neutral-600);font-size:13px">还没有配置 LLM。下方添加第一个（未配置时诊断/助手/回复走内置模板，功能正常）。</td></tr><% } %>
+      </tbody>
+    </table>
+    <p class="form-ok" id="llm-test-msg" style="min-height:auto;margin-top:8px"></p>
+
+    <div style="border-top:1px solid var(--color-divider);margin-top:16px;padding-top:16px">
+      <span class="card-kicker">添加 LLM</span>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;max-width:600px">
+        <div class="grid-form2">
+          <div class="field"><label>名称（如 智谱GLM / Z.AI 备用）</label><input class="input" id="llm-new-name" placeholder="智谱GLM"></div>
+          <div class="field"><label>模型</label><input class="input" id="llm-new-model" placeholder="glm-4.6 / glm-4.5-flash"></div>
+        </div>
+        <div class="field"><label>Base URL</label><input class="input" id="llm-new-base" placeholder="https://open.bigmodel.cn/api/anthropic 或 .../api/paas/v4"></div>
+        <div class="field"><label>API Key</label><input class="input" id="llm-new-key" type="password" placeholder="粘贴 key"></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-secondary" id="llm-new-test">先测试</button><button type="button" class="btn btn-primary" id="llm-new-add">添加</button><span class="form-ok" id="llm-new-msg" style="min-height:auto"></span></div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn btn-primary" id="llm-save">保存配置</button><button type="button" class="btn btn-secondary" id="llm-test">测试连接</button><span class="form-ok" id="llm-msg" style="min-height:auto"></span></div>
     </div>
-    <p style="font-size:12px;color:var(--color-neutral-600);margin-top:12px">配好后：诊断报告摘要、智能助手、评论自动回复、AI 生成草稿都会升级为 LLM 生成；失败自动回退内置模板/FAQ。</p>
+    <p style="font-size:12px;color:var(--color-neutral-600);margin-top:12px">端点自动识别：含 <code>anthropic</code> 走 Anthropic 格式，否则 OpenAI 格式。配好后诊断报告/助手/评论回复/AI草稿都升级为 LLM，任一路失败自动切下一路，全失败回退内置模板/FAQ。</p>
   </div>
 
   <!-- API 令牌 -->

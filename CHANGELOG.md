@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1.2.0 — 2026-07-17
+
+**多 LLM + 故障自动切换**：后台可配置一组 LLM（顺序=优先级），调用时依次尝试，任一路失败（网络/HTTP/空响应）自动切下一路，全失败才回退内置模板/FAQ。
+
+- config.js：provider 列表 CRUD（增删改/启停/排序），旧单配置首次读取自动迁移为 provider（不丢已配好的）；key 脱敏、传空保留原值。
+- llm.js：chat() 按 activeProviders 顺序故障切换，切换/失败写活动日志；testConnection 可测指定 provider 或临时输入；沿用双端点识别（OpenAI/Anthropic）。
+- 后台「智能助理」LLM 卡片改为 provider 表（优先级/名称/模型/Base/脱敏key/启停/测试/上下移/删除）+「添加 LLM」（先测试再添加）。
+- 验证：迁移/多provider/排序/启停/故障切换 5 项逻辑测试通过 + 后台渲染与 API 实测 200。
+
 ## v1.1.0 — 2026-07-17
 
 后台管理与 Agent 自动化大升级（Phase A–F 全部落地：后端 + 界面 + 文档）。从「有引擎没方向盘」到全部接通。

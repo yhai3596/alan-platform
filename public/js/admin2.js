@@ -71,25 +71,62 @@
     post('/admin/api/agent', { scanIntervalMin: v }, function (ok, d) { alanToast(ok ? '巡检间隔已保存' : (d.error || '保存失败')); });
   });
 
-  // ════════ LLM 配置 ════════
-  var llmSave = document.getElementById('llm-save');
-  var llmTest = document.getElementById('llm-test');
-  var llmMsg = document.getElementById('llm-msg');
-  if (llmSave) llmSave.addEventListener('click', function () {
-    var body = { base: document.getElementById('llm-base').value, model: document.getElementById('llm-model').value };
-    var key = document.getElementById('llm-key').value;
-    if (key) body.key = key;
-    post('/admin/api/llm', body, function (ok, d) {
-      msg(llmMsg, ok, ok ? ('已保存 · ' + (d.configured ? 'Key ' + d.keyMasked : '未设 Key')) : (d.error || '保存失败'));
-      if (ok) document.getElementById('llm-key').value = '';
-    });
+  // ════════ LLM 多 provider ════════
+  function testResultText(d) {
+    return d.ok ? ('✓ ' + (d.name || '') + ' 正常 · ' + d.model + ' · ' + d.endpoint + ' · ' + d.latencyMs + 'ms · 回复「' + (d.reply || '') + '」')
+                : ('✗ ' + (d.name || '') + ' 失败：' + (d.error || '未知'));
+  }
+  // 已存 provider：测试
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-llm-test]') : null;
+    if (!t) return;
+    var tm = document.getElementById('llm-test-msg');
+    msg(tm, true, '测试中…');
+    post('/admin/api/llm-test', { id: t.getAttribute('data-llm-test') }, function (ok, d) { msg(tm, d.ok, testResultText(d)); });
   });
-  if (llmTest) llmTest.addEventListener('click', function () {
-    msg(llmMsg, true, '测试中…');
-    post('/admin/api/llm-test', {}, function (ok, d) {
-      if (d.ok) msg(llmMsg, true, '连接正常 · ' + d.model + ' · ' + d.latencyMs + 'ms · 回复「' + (d.reply || '') + '」');
-      else msg(llmMsg, false, '失败：' + (d.error || '未知'));
-    });
+  // 启用/停用
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-llm-toggle]') : null;
+    if (!t) return;
+    post('/admin/api/llm-provider-toggle', { id: t.getAttribute('data-llm-toggle'), enabled: t.getAttribute('data-on') !== '1' }, function (ok) { if (ok) reloadTo('agent'); });
+  });
+  // 删除
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-llm-del]') : null;
+    if (!t) return;
+    if (!confirm('删除 LLM「' + t.getAttribute('data-name') + '」？')) return;
+    post('/admin/api/llm-provider-delete', { id: t.getAttribute('data-llm-del') }, function (ok) { if (ok) reloadTo('agent'); });
+  });
+  // 上移/下移（改顺序=改故障切换优先级）
+  function currentIds() { return Array.prototype.map.call(document.querySelectorAll('#llm-rows tr[data-llm-id]'), function (r) { return r.getAttribute('data-llm-id'); }); }
+  function moveOrder(id, dir) {
+    var ids = currentIds(); var i = ids.indexOf(id); if (i < 0) return;
+    var j = i + dir; if (j < 0 || j >= ids.length) return;
+    var tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp;
+    post('/admin/api/llm-provider-order', { ids: ids }, function (ok) { if (ok) reloadTo('agent'); });
+  }
+  document.addEventListener('click', function (e) {
+    var up = e.target.closest ? e.target.closest('[data-llm-up]') : null;
+    var dn = e.target.closest ? e.target.closest('[data-llm-down]') : null;
+    if (up) moveOrder(up.getAttribute('data-llm-up'), -1);
+    if (dn) moveOrder(dn.getAttribute('data-llm-down'), 1);
+  });
+  // 添加：先测试 / 添加
+  function newProviderBody() {
+    return { name: document.getElementById('llm-new-name').value, base: document.getElementById('llm-new-base').value, model: document.getElementById('llm-new-model').value, key: document.getElementById('llm-new-key').value };
+  }
+  var newTest = document.getElementById('llm-new-test');
+  if (newTest) newTest.addEventListener('click', function () {
+    var nm = document.getElementById('llm-new-msg'); var b = newProviderBody();
+    if (!b.base || !b.model || !b.key) { msg(nm, false, '测试需填 Base/模型/Key'); return; }
+    msg(nm, true, '测试中…');
+    post('/admin/api/llm-test', { base: b.base, model: b.model, key: b.key }, function (ok, d) { msg(nm, d.ok, testResultText(d)); });
+  });
+  var newAdd = document.getElementById('llm-new-add');
+  if (newAdd) newAdd.addEventListener('click', function () {
+    var nm = document.getElementById('llm-new-msg'); var b = newProviderBody();
+    if (!b.name || !b.base || !b.model || !b.key) { msg(nm, false, '名称/Base/模型/Key 都要填'); return; }
+    post('/admin/api/llm-provider', b, function (ok, d) { if (ok) reloadTo('agent'); else msg(nm, false, d.error || '添加失败'); });
   });
 
   // ════════ API 令牌 ════════
