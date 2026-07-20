@@ -224,9 +224,10 @@ function seedContent() {
 
   const insTool = db.prepare('INSERT INTO tools(no,name,description,status,url) VALUES (?,?,?,?,?)');
   insTool.run(1, 'HVAC Tool', '暖通工程计算与选型辅助工具：制冷剂物性、焓湿图、水力与能耗计算等，持续扩充中。', 'live', 'https://hvac.geopro.cc');
-  insTool.run(2, 'AHRI 竞品分析', '基于 AHRI 认证数据的竞品对比分析。具体功能介绍待产品文档补充。', 'live', '');
+  insTool.run(2, 'AHRI 竞品分析', '基于 AHRI 认证数据的竞品数据查询与竞品动态跟踪。', 'live', 'https://ahri.geopro.cc');
   insTool.run(3, '北美市场竞品分析', '面向北美暖通市场的竞品情报与分析。具体功能介绍待产品文档补充。', 'live', '');
-  insTool.run(4, '专利 AI 辅助助手', 'AI 辅助的专利检索、分析与撰写支持。具体功能介绍待产品文档补充。', 'live', '');
+  insTool.run(4, '专利 AI 辅助助手', 'AI 辅助的专利技术交底书撰写系统：从技术要点到交底书初稿。', 'live', 'https://aipatent.lovable.app');
+  insTool.run(5, '企业财报解读', '企业财报解读与财务分析训练室：读懂三大报表、拆解关键财务指标，边学边练。', 'live', 'https://finstar.geopro.cc');
 
   const insCourse = db.prepare('INSERT INTO courses(no,title,description,lectures,price_cents,status,tag,kicker) VALUES (?,?,?,?,?,?,?,?)');
   insCourse.run(1, '制造业 AI 入门：从业务出发', '给非技术背景的管理者与业务骨干：AI 能做什么、不能做什么、怎么选第一个落地场景。', 12, 29900, 'live', '热门', '已上线 · 12 讲');

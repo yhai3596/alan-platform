@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1.3.3 — 2026-07-20
+
+**工具集新增 3 款工具**（种子同步；线上另经后台生效）：
+
+- № 02「AHRI 竞品分析」：填 url `https://ahri.geopro.cc`，简介改为「基于 AHRI 认证数据的竞品数据查询与竞品动态跟踪」。
+- № 04「专利 AI 辅助助手」：填 url `https://aipatent.lovable.app`，简介改为「AI 辅助的专利技术交底书撰写系统」。
+- № 05「企业财报解读」（**新增**）：url `https://finstar.geopro.cc`，企业财报解读与财务分析训练室。
+- **只改 `src/db.js` 种子＝仅对全新部署生效**：`seedContent()` 有「`posts` 非空即早退」守卫（db.js:170），线上库早已 seed，`git push` 不会重跑种子。线上 3 张卡由管理员在 geopro.cc 后台「内容管理」手动更新（编辑 № 02/№ 04、新建 № 05；url 须含 `https://`，否则被后端校验拒绝）——数据与代码两套，互不覆盖。
+
 ## v1.3.2 — 2026-07-17
 
 **新增异地拉取脚本** `scripts/pull-backups.js`（`npm run pull-backups`）：
