@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v1.5.0 — 2026-10-03
+
+**SEO 收录：站长平台验证 + 发布即通知搜索引擎。**
+
+- 后台「页面内容 → SEO 收录 → 站点验证标签」：每行一条，可直接粘贴 Google / 百度 / Bing / 搜狗 / 头条搜索等站长平台给的 `<meta>` 验证标签，或写成「名称=验证码」。只解析 name/content 并校验字符集后转义输出，不原样插入 HTML。
+- 新增 `src/indexing.js`：文章发布（后台保存为已发布、一键发布、外部 Agent 直接发布）后异步通知已配置的通道——IndexNow（`INDEXNOW_KEY`）与百度普通收录 API（`BAIDU_PUSH_TOKEN`）；未配置自动跳过，失败只写 Agent 活动日志，不影响发布。
+- `/<INDEXNOW_KEY>.txt` 提供 IndexNow 密钥文件。
+- `scripts/submit-urls.js`（`npm run submit-urls`）：首次接入时一次性提交全站公开 URL；`--dry-run` 只列出。
+- sitemap 与提交脚本共用 `seo.publicUrls()`。
+- 验证：`npm run test:indexing` 6/6；本地 SEED_DEMO 起服务 smoke 14/14；验证标签输出、密钥文件 200/错误密钥 404、后台发布文章后两个通道均被触发并记日志。
+
 ## v1.4.0 — 2026-10-03
 
 **GEO：统一对外身份为「制造业AI应用专家」（暖通作为细分领域锚点），补齐搜索引擎 / AI 爬虫基础设施。**

@@ -10,6 +10,7 @@ const analytics = require('../analytics');
 const agent = require('../agent');
 const mailer = require('../mailer');
 const llm = require('../llm');
+const indexing = require('../indexing');
 const config = require('../config');
 const content = require('../content');
 const report = require('../report');
@@ -103,6 +104,7 @@ router.post('/admin/api/post', requireAdminApi, (req, res) => {
     const publishedAt = old.published_at || (st === 'published' ? db.prepare("SELECT date('now','+8 hours') d").get().d : null);
     db.prepare(`UPDATE posts SET title=?, category=?, excerpt=?, content_md=?, read_minutes=?, status=?, published_at=?, updated_at=datetime('now') WHERE id=?`)
       .run(t, String(category).trim() || '行业观察', String(excerpt).trim(), String(content_md), rm, st, publishedAt, old.id);
+    if (st === 'published') indexing.notifyPostPublished(old.slug, 'admin');
     return res.json({ ok: true, id: old.id });
   }
   const slug = `post-${Date.now().toString(36)}`;
@@ -110,6 +112,7 @@ router.post('/admin/api/post', requireAdminApi, (req, res) => {
   const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by)
     VALUES (?,?,?,?,?,?,?,?,'admin')`)
     .run(slug, t, String(category).trim() || '行业观察', String(excerpt).trim(), String(content_md), rm, st, publishedAt);
+  if (st === 'published') indexing.notifyPostPublished(slug, 'admin');
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
@@ -120,6 +123,7 @@ router.post('/admin/api/post-publish', requireAdminApi, (req, res) => {
   const publishedAt = p.published_at || db.prepare("SELECT date('now','+8 hours') d").get().d;
   db.prepare(`UPDATE posts SET status='published', published_at=?, updated_at=datetime('now') WHERE id=?`).run(publishedAt, p.id);
   config.logActivity('admin', 'post_publish', `post#${p.id}`, p.title.slice(0, 50), true);
+  indexing.notifyPostPublished(p.slug, 'admin');
   res.json({ ok: true });
 });
 

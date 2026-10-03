@@ -17,6 +17,9 @@ const REGISTRY = [
   { key: 'id.knows_about', group: '身份（GEO）', label: '专长领域（每行一个）', type: TA, def: '暖通空调（HVAC）\n制造业 AI 落地\n企业 AI 诊断\nAHRI 竞品分析\n专利 AI 辅助' },
   { key: 'id.same_as', group: '身份（GEO）', label: '其他平台主页链接（每行一个完整 URL：公众号/知乎/头条/抖音/LinkedIn 等）', type: TA, def: '' },
 
+  // —— SEO 收录 ——
+  { key: 'seo.verify_meta', group: 'SEO 收录', label: '站点验证标签（每行一条：直接粘贴平台给的 <meta> 标签，或写成「名称=验证码」）', type: TA, def: '' },
+
   // —— 全站 ——
   { key: 'site.portrait', group: '全站', label: '人物照片（首页/关于/文章头像共用）', type: IMG, def: '/assets/alan.png' },
 

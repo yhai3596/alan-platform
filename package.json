@@ -9,7 +9,9 @@
     "postinstall": "node scripts/copy-fonts.js",
     "smoke": "node scripts/smoke.js",
     "backup": "node scripts/backup-db.js",
-    "pull-backups": "node scripts/pull-backups.js"
+    "pull-backups": "node scripts/pull-backups.js",
+    "test:indexing": "node scripts/test-indexing.js",
+    "submit-urls": "node scripts/submit-urls.js"
   },
   "engines": {
     "node": ">=20"
@@ -30,4 +32,3 @@
   "license": "UNLICENSED",
   "private": true
 }
-

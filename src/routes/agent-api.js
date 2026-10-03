@@ -8,6 +8,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { db, setSetting } = require('./../db');
 const { agentModes, logActivity } = require('./../config');
+const indexing = require('./../indexing');
 
 const router = express.Router();
 
@@ -70,6 +71,7 @@ router.post('/posts', (req, res) => {
   const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by)
     VALUES (?,?,?,?,?,?,?,?,?)`)
     .run(slug, t, String(category).trim() || '行业观察', String(excerpt).trim().slice(0, 300), String(content_md), rm, status, publishedAt, `agent:${req.agentName}`);
+  if (status === 'published') indexing.notifyPostPublished(slug, `agent:${req.agentName}`);
   logActivity(`agent:${req.agentName}`, 'post_create', `post#${r.lastInsertRowid}`, `${t.slice(0, 50)} → ${status === 'draft' ? '草稿待审' : '直接发布'}`, true);
   res.json({
     ok: true, id: r.lastInsertRowid, slug, status,
