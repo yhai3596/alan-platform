@@ -5,11 +5,11 @@
 
   <section class="grid-about">
     <figure style="margin:0;width:min(340px,100%)">
-      <img src="<%- ctImg('site.portrait') || '/assets/alan.png' %>" alt="Alan" style="width:100%;aspect-ratio:876/970;object-fit:cover;mix-blend-mode:multiply;filter:sepia(0.18) saturate(0.85) contrast(1.04);-webkit-mask-image:radial-gradient(92% 74% at 50% 38%, black 32%, rgba(0,0,0,0.6) 58%, transparent 81%);mask-image:radial-gradient(92% 74% at 50% 38%, black 32%, rgba(0,0,0,0.6) 58%, transparent 81%)">
+      <img src="<%- ctImg('site.portrait') || '/assets/alan.png' %>" alt="<%= ctRaw('id.name') %> · <%= ctRaw('id.title') %>" style="width:100%;aspect-ratio:876/970;object-fit:cover;mix-blend-mode:multiply;filter:sepia(0.18) saturate(0.85) contrast(1.04);-webkit-mask-image:radial-gradient(92% 74% at 50% 38%, black 32%, rgba(0,0,0,0.6) 58%, transparent 81%);mask-image:radial-gradient(92% 74% at 50% 38%, black 32%, rgba(0,0,0,0.6) 58%, transparent 81%)">
     </figure>
     <div>
       <span class="kicker" style="font-feature-settings:normal">关于 · About</span>
-      <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,58px);line-height:1.12;margin:0">Alan</h1>
+      <h1 style="font-weight:400;font-size:clamp(38px,4.6vw,58px);line-height:1.12;margin:0"><%= ctRaw('id.name') %></h1>
       <p style="font-size:15px;line-height:26px;margin:9.2px 0 0;color:var(--color-neutral-600)"><%- ct('about.subtitle') %></p>
       <p style="font-size:15.5px;line-height:28px;margin:28px 0 0;max-width:56ch;color:color-mix(in srgb, var(--color-text) 82%, transparent);text-align:justify"><%- ct('about.bio') %></p>
       <p style="font-size:13px;line-height:24px;margin:14px 0 0;color:var(--color-neutral-600)"><%- ct('about.bio_en') %></p>
@@ -18,10 +18,10 @@
 
       <span class="kicker" style="font-feature-settings:normal;margin-bottom:20px">联系方式 · Contact</span>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 28px;max-width:560px">
-        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">邮箱 · Email</span><a href="mailto:<%- ct('about.contact_email') %>" style="font-size:15px"><%- ct('about.contact_email') %></a></div>
-        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">微信 · WeChat</span><span style="font-size:15px"><%- ct('about.contact_wechat') %></span></div>
-        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">LinkedIn</span><span style="font-size:15px"><%- ct('about.contact_linkedin') %></span></div>
-        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">公众号 · Official Account</span><span style="font-size:15px"><%- ct('about.contact_mp') %></span></div>
+        <% if (!isPlaceholder(ctRaw('about.contact_email'))) { %><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">邮箱 · Email</span><a href="mailto:<%- ct('about.contact_email') %>" style="font-size:15px"><%- ct('about.contact_email') %></a></div><% } %>
+        <% if (!isPlaceholder(ctRaw('about.contact_wechat'))) { %><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">微信 · WeChat</span><span style="font-size:15px"><%- ct('about.contact_wechat') %></span></div><% } %>
+        <% if (!isPlaceholder(ctRaw('about.contact_linkedin'))) { %><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">LinkedIn</span><span style="font-size:15px"><%- ct('about.contact_linkedin') %></span></div><% } %>
+        <% if (!isPlaceholder(ctRaw('about.contact_mp'))) { %><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--color-neutral-600)">公众号 · Official Account</span><span style="font-size:15px"><%- ct('about.contact_mp') %></span></div><% } %>
       </div>
     </div>
   </section>

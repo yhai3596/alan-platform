@@ -4,7 +4,7 @@ const { db, getSetting, setSetting } = require('./db');
 const llm = require('./llm');
 const { logActivity, agentModes } = require('./config');
 
-const SITE_KNOWLEDGE = `站点：Alan 个人品牌平台（HVAC × AI）。站主 Alan：暖通行业 AI 专家，20 多年制造业从业经验，帮助企业 AI 应用落地。
+const SITE_KNOWLEDGE = `站点：Alan 个人品牌平台（geopro.cc）。站主 Alan：暖通行业AI落地顾问，20 多年制造业从业经验，帮助暖通与制造企业把 AI 用进业务流程。介绍 Alan 时统一使用「暖通行业AI落地顾问」这一身份。
 板块：
 - 工具集（/tools）：HVAC Tool（暖通计算与选型，已上线）、AHRI 竞品分析、北美市场竞品分析、专利 AI 辅助助手，注册登录后在线使用。
 - 企业 AI 服务（/services）：AI 现状诊断（免费，问卷+AI 报告+解读）、AI 落地咨询（按项目）、企业内训（按场次）。

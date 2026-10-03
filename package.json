@@ -1,7 +1,7 @@
 {
   "name": "alan-platform",
   "version": "1.0.0",
-  "description": "Alan 个人IP与AI工具平台（HVAC × AI）— 多页站点 + 管理后台",
+  "description": "Alan 个人IP与AI工具平台（暖通行业AI落地顾问）— 多页站点 + 管理后台",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
