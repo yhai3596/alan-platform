@@ -1,4 +1,4 @@
-// Alan 个人IP与AI工具平台（暖通行业AI落地顾问）— 服务入口
+// Alan 个人IP与AI工具平台（制造业AI应用专家）— 服务入口
 // Express + EJS 服务端渲染 + SQLite。生产环境由 nginx 反代（监听 127.0.0.1:8201）。
 require('./src/load-env');
 const path = require('path');

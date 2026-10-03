@@ -5,7 +5,7 @@ const { raw, lines } = require('./content');
 const SITE_URL = (process.env.SITE_URL || 'https://geopro.cc').replace(/\/+$/, '');
 const PERSON_ID = `${SITE_URL}/about#person`;
 
-// 页面标题：「页面名 · Alan · 暖通行业AI落地顾问」
+// 页面标题：「页面名 · Alan · 制造业AI应用专家」
 const brand = () => `${raw('id.name')} · ${raw('id.title')}`;
 const pageTitle = name => (name ? `${name} · ${brand()}` : brand());
 

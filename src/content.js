@@ -9,10 +9,11 @@ const IMG = 'image';
 const REGISTRY = [
   // —— 身份（GEO 实体口径）：全站标题/导航/页脚/meta/结构化数据共用这一组，改这里全站同步 ——
   // 对外身份必须一字不差地统一（AI 搜索靠「名字+身份」多处一致来识别同一个人），不要在别处另写一套。
+  // 身份较宽（制造业），一句话介绍里保留「暖通」作为细分领域锚点，用于和同名者区分。
   { key: 'id.name', group: '身份（GEO）', label: '对外名字', type: T, def: 'Alan' },
-  { key: 'id.title', group: '身份（GEO）', label: '标准身份（全站统一，一字不差）', type: T, def: '暖通行业AI落地顾问' },
-  { key: 'id.title_en', group: '身份（GEO）', label: '英文身份', type: T, def: 'HVAC AI Implementation Consultant' },
-  { key: 'id.oneliner', group: '身份（GEO）', label: '一句话介绍（默认 meta 描述 / 结构化数据）', type: TA, def: 'Alan，暖通行业AI落地顾问，20 多年制造业从业经验，帮助暖通与制造企业把 AI 用进业务流程：企业 AI 诊断、落地咨询、内训，以及 HVAC 选型、AHRI 竞品分析等在线工具。' },
+  { key: 'id.title', group: '身份（GEO）', label: '标准身份（全站统一，一字不差）', type: T, def: '制造业AI应用专家' },
+  { key: 'id.title_en', group: '身份（GEO）', label: '英文身份', type: T, def: 'Manufacturing AI Application Specialist' },
+  { key: 'id.oneliner', group: '身份（GEO）', label: '一句话介绍（默认 meta 描述 / 结构化数据）', type: TA, def: 'Alan，制造业AI应用专家，20 多年制造业从业经验，深耕暖通（HVAC）行业，帮助制造企业把 AI 用进业务流程：企业 AI 诊断、落地咨询、内训，以及 HVAC 选型、AHRI 竞品分析等在线工具和企业 AI 落地产品。' },
   { key: 'id.knows_about', group: '身份（GEO）', label: '专长领域（每行一个）', type: TA, def: '暖通空调（HVAC）\n制造业 AI 落地\n企业 AI 诊断\nAHRI 竞品分析\n专利 AI 辅助' },
   { key: 'id.same_as', group: '身份（GEO）', label: '其他平台主页链接（每行一个完整 URL：公众号/知乎/头条/抖音/LinkedIn 等）', type: TA, def: '' },
 
@@ -21,7 +22,7 @@ const REGISTRY = [
 
   // —— 首页 ——
   { key: 'home.hero_title', group: '首页', label: 'Hero 主标题（换行分行）', type: TA, def: '把 AI 真正用进制造业，\n从暖通行业开始。' },
-  { key: 'home.hero_body', group: '首页', label: 'Hero 介绍段', type: TA, def: '我是 Alan——暖通行业AI落地顾问，20 多年制造业从业经验，深耕 AI 与企业业务的落地融合。这里有我的在线工具、企业 AI 服务与课程，以及我正在持续写下的行业观察。' },
+  { key: 'home.hero_body', group: '首页', label: 'Hero 介绍段', type: TA, def: '我是 Alan——制造业AI应用专家，20 多年制造业从业经验，深耕暖通行业，专注 AI 与企业业务的落地融合。这里有我的在线工具、企业 AI 服务与课程，以及我正在持续写下的行业观察。' },
   { key: 'home.hero_note_en', group: '首页', label: 'Hero 英文注脚', type: T, def: 'Putting AI to real work in manufacturing — starting with HVAC.' },
   { key: 'home.stat1_value', group: '首页', label: '数字1 · 值', type: T, def: '20+' },
   { key: 'home.stat1_label', group: '首页', label: '数字1 · 说明', type: T, def: '年制造业从业经验 · Years' },
@@ -43,7 +44,7 @@ const REGISTRY = [
   { key: 'home.contact_body', group: '首页', label: '底部联系 · 介绍', type: TA, def: '企业合作、课程咨询或只是交换想法——留下邮箱，我会回复。' },
 
   // —— 关于 ——
-  { key: 'about.subtitle', group: '关于', label: '身份说明', type: T, def: '暖通行业AI落地顾问 · 帮助暖通与制造企业把 AI 用进业务流程' },
+  { key: 'about.subtitle', group: '关于', label: '身份说明', type: T, def: '制造业AI应用专家 · 深耕暖通行业，帮助制造企业把 AI 用进业务流程' },
   { key: 'about.bio', group: '关于', label: '个人自述', type: TA, def: '20 多年制造业从业经验，深耕 AI 与企业业务的落地融合。我相信 AI 的价值不在演示里，而在流程里——在选型表、竞品库、专利稿和车间的日报里。这个网站是我的工作台：工具给同行用，服务给企业用，课程和文章给想把 AI 用起来的每一个人。' },
   { key: 'about.bio_en', group: '关于', label: '英文注脚', type: T, def: '20+ years in manufacturing. Making AI land in real business — starting with HVAC.' },
   { key: 'about.contact_email', group: '关于', label: '联系 · 邮箱', type: T, def: 'hello@alan-ai.example' },
