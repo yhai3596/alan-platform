@@ -53,7 +53,36 @@ function articleLd(post) {
   };
 }
 
+// 公开页面清单：sitemap 与批量提交脚本共用
+const PUBLIC_PAGES = ['/', '/about', '/services', '/tools', '/cases', '/courses', '/blog', '/diagnosis'];
+function publicUrls(db) {
+  const day = s => (s ? String(s).slice(0, 10) : null);
+  const posts = db.prepare("SELECT slug, published_at, updated_at FROM posts WHERE status='published' ORDER BY published_at DESC").all();
+  const latest = posts.length ? day(posts[0].updated_at) || day(posts[0].published_at) : null;
+  return [
+    ...PUBLIC_PAGES.map(p => ({ loc: SITE_URL + p, lastmod: p === '/' || p === '/blog' ? latest : null })),
+    ...posts.map(p => ({ loc: `${SITE_URL}/article/${encodeURIComponent(p.slug)}`, lastmod: day(p.updated_at) || day(p.published_at) })),
+  ];
+}
+
+// 站长平台验证标签（后台「SEO 收录 → 站点验证」）：每行一条，可直接粘贴平台给的 <meta> 标签，
+// 也可写成「名称=验证码」。只取 name/content 两个值、校验字符集后再转义输出，不原样插入 HTML。
+function verifyMetas() {
+  const out = [];
+  for (const line of lines('seo.verify_meta')) {
+    let name, content;
+    const tag = line.match(/name\s*=\s*["']([^"']+)["'][^>]*content\s*=\s*["']([^"']+)["']/i);
+    if (tag) [, name, content] = tag;
+    else {
+      const kv = line.match(/^([\w.-]+)\s*[=:]\s*(\S+)$/);
+      if (kv) [, name, content] = kv;
+    }
+    if (name && content && /^[\w.-]{2,64}$/.test(name) && /^[\w.\-=+/:]{1,200}$/.test(content)) out.push({ name, content });
+  }
+  return out;
+}
+
 // 安全嵌入 <script type="application/ld+json">：转义 < 防止提前闭合 script
 const jsonLd = obj => JSON.stringify(obj).replace(/</g, '\\u003c');
 
-module.exports = { SITE_URL, PERSON_ID, brand, pageTitle, person, siteGraph, articleLd, jsonLd };
+module.exports = { SITE_URL, PERSON_ID, brand, pageTitle, person, siteGraph, articleLd, jsonLd, PUBLIC_PAGES, publicUrls, verifyMetas };
