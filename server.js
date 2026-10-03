@@ -1,4 +1,4 @@
-// Alan 个人IP与AI工具平台（HVAC × AI）— 服务入口
+// Alan 个人IP与AI工具平台（制造业AI应用专家）— 服务入口
 // Express + EJS 服务端渲染 + SQLite。生产环境由 nginx 反代（监听 127.0.0.1:8201）。
 require('./src/load-env');
 const path = require('path');
@@ -10,6 +10,7 @@ const { db } = require('./src/db');
 const makeStore = require('./src/session-store');
 const siteContent = require('./src/content');
 const worker = require('./src/worker');
+const seo = require('./src/seo');
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -73,20 +74,26 @@ app.locals.assetVer = Date.now().toString(36);
 app.locals.ct = siteContent.ct;
 app.locals.ctBr = siteContent.ctBr;
 app.locals.ctImg = siteContent.ctImg;
+app.locals.ctRaw = siteContent.raw;
+app.locals.isPlaceholder = siteContent.isPlaceholder;
+// GEO：结构化数据与规范地址（身份口径见 src/content.js 的 id.* 键）
+app.locals.seo = seo;
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.path = req.path;
+  res.locals.canonical = seo.SITE_URL + req.path;
   next();
 });
 
 // —— 路由 ——
+app.use('/', require('./src/routes/seo')); // robots.txt / sitemap.xml
 app.use('/', require('./src/routes/pages'));
 app.use('/api/agent', require('./src/routes/agent-api')); // 外部 Agent（Bearer 令牌）
 app.use('/api', require('./src/routes/api'));
 app.use('/', require('./src/routes/admin'));
 
-app.use((req, res) => res.status(404).render('404', { title: '页面不存在 · Alan', active: '' }));
+app.use((req, res) => res.status(404).render('404', { title: '页面不存在 · Alan', active: '', noindex: true }));
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

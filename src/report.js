@@ -161,7 +161,7 @@ async function generate(answers, company) {
       const text = await llm.chat([
         {
           role: 'system',
-          content: '你是 Hermes Agent，暖通行业 AI 专家 Alan 的企业 AI 诊断助手。根据企业问卷答案撰写诊断摘要。语气专业克制、面向制造业管理层，不夸大。只输出 JSON 对象，格式：{"summary":"140-200字的诊断摘要","stage_notes":["阶段一一句话建议","阶段二一句话建议","阶段三一句话建议"]}',
+          content: '你是 Hermes Agent，制造业AI应用专家 Alan 的企业 AI 诊断助手。根据企业问卷答案撰写诊断摘要。语气专业克制、面向制造业管理层，不夸大。只输出 JSON 对象，格式：{"summary":"140-200字的诊断摘要","stage_notes":["阶段一一句话建议","阶段二一句话建议","阶段三一句话建议"]}',
         },
         {
           role: 'user',

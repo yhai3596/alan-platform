@@ -131,7 +131,7 @@ router.post('/admin/api/post-generate', requireAdminApi, async (req, res) => {
   if (!tp) return res.status(400).json({ error: '请填写选题' });
   try {
     const text = await llm.chat([
-      { role: 'system', content: `你是 Alan（暖通行业 AI 专家，20 多年制造业经验）的写作助理「小龙虾」。${agent.SITE_KNOWLEDGE}\n为 Alan 的博客撰写文章草稿。要求：中文、面向制造业/暖通从业者、观点务实不夸大、可用二级标题分段（Markdown ## ）。只输出 JSON：{"title":"标题","category":"行业观察|工具方法|专利|课程笔记 之一","excerpt":"60-90字摘要","content_md":"Markdown 正文","read_minutes":整数}` },
+      { role: 'system', content: `你是 Alan（制造业AI应用专家，20 多年制造业经验）的写作助理「小龙虾」。${agent.SITE_KNOWLEDGE}\n为 Alan 的博客撰写文章草稿。要求：中文、面向制造业/暖通从业者、观点务实不夸大、可用二级标题分段（Markdown ## ）。只输出 JSON：{"title":"标题","category":"行业观察|工具方法|专利|课程笔记 之一","excerpt":"60-90字摘要","content_md":"Markdown 正文","read_minutes":整数}` },
       { role: 'user', content: `选题：${tp}\n要点/大纲：${String(outline).trim() || '（自拟）'}\n风格：${String(style).trim()}\n目标篇幅：约 ${Number(length) || 800} 字` },
     ], { maxTokens: 3000, timeoutMs: 60000, json: true });
     const j = llm.parseJson(text);

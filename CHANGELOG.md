@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v1.4.0 — 2026-10-03
+
+**GEO：统一对外身份为「制造业AI应用专家」（暖通作为细分领域锚点），补齐搜索引擎 / AI 爬虫基础设施。**
+
+- 新增后台「页面内容 → 身份（GEO）」6 个键（`id.name` / `id.title` / `id.title_en` / `id.oneliner` / `id.knows_about` / `id.same_as`）：全站标题、导航品牌、页脚、meta 描述、作者署名、结构化数据都从这里取，改一处全站同步。
+- 页面标题统一为「页面名 · Alan · 制造业AI应用专家」；导航、页脚、登录页、邮件里的「HVAC × AI」、Agent/诊断/写作助理提示词里的「暖通行业 AI 专家」全部改为新身份。
+- `about.subtitle`、`home.hero_body` 默认文案改为新身份。**若线上后台曾手动改过这两项，需在后台同步更新**（默认值只在未覆盖时生效）。
+- 新增 `/robots.txt`（屏蔽 /admin、/api/、/login、/docs/）与 `/sitemap.xml`（公开页 + 已发布文章）。
+- `<head>`：每页独立 meta 描述（文章页取摘要）、canonical、Open Graph、全站 Person + WebSite JSON-LD；文章页加 Article JSON-LD（作者指向同一 Person）。登录页、404、文档页加 noindex。
+- 关于页：联系方式为设计稿占位值（含「占位」或 example 域名）时不再在前台显示，避免假信息被搜索引擎和 AI 抓取；头像 alt 带身份。
+- 文章页署名改为「Alan · 制造业AI应用专家」；一句话介绍、关于页副标题、首页介绍保留「暖通」以便和同名者区分。
+- 站点地址取 `SITE_URL` 环境变量（默认 `https://geopro.cc`），canonical / sitemap / 结构化数据共用。
+- 验证：本地 `SEED_DEMO=1` 起服务，`npm run smoke` 14/14 通过；robots/sitemap 200；JSON-LD 可解析；后台改 `id.same_as` 后 `sameAs` 正确输出、非 URL 行被过滤。
+
 ## v1.3.3 — 2026-07-20
 
 **工具集新增 3 款工具**（种子同步；线上另经后台生效）：
