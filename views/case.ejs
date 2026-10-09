@@ -7,14 +7,14 @@
     <a href="/cases" class="v2-muted" style="font-size:14px;text-decoration:none">← 全部案例</a>
     <p class="v2-eyebrow" style="margin-top:28px"><%= c.scene || '案例' %><% if (c.in_use) { %> · <span class="v2-badge">企业在用</span><% } %></p>
     <h1 class="v2-h1" style="font-size:clamp(28px,3.6vw,46px)"><%= c.title %></h1>
+    <%# 没有内容的字段不显示（对外版本只写有出处的事实，宁缺不编） %>
     <div class="v2-meta">
-      <div><span>客户</span><%- fieldHtml(c.client_desc || c.org) %></div>
-      <div><span>行业</span><%- fieldHtml(c.industry) %></div>
-      <div><span>周期</span><%- fieldHtml(c.period) %></div>
-      <div><span>我的角色</span><%- fieldHtml(c.my_role) %></div>
+      <% [['客户', c.client_desc || c.org], ['行业', c.industry], ['周期', c.period], ['我的角色', c.my_role]].filter(([, v]) => v).forEach(([k, v]) => { %>
+      <div><span><%= k %></span><%- fieldHtml(v) %></div>
+      <% }) %>
     </div>
     <% const blocks = [['原来的问题', c.problem || c.description], ['为什么先做这个', c.why_this], ['怎么做的', c.approach], ['结果', c.results], ['踩过的坑', c.lessons], ['适合谁复制', c.replicable_for], ['用到的工具', c.tools_used]]; %>
-    <% blocks.forEach(([h, v]) => { %>
+    <% blocks.filter(([h, v]) => v || h === '原来的问题').forEach(([h, v]) => { %>
     <h2><%= h %></h2>
     <%- fieldHtml(v) %>
     <% if (h === '结果') { %><p class="v2-muted" style="font-size:13px">结果只写有出处的事实；没有出处的数字不上站。</p><% } %>
