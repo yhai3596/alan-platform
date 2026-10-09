@@ -1,0 +1,49 @@
+<!-- v2.0 关于页中段：经历时间线 → 资质与身份 → 主讲课程 → 授课现场 → 著作（文案都在后台「页面内容 → 关于」可改） -->
+<% const rows = key => ctRaw(key).split(/\r?\n/).map(l => l.split('｜').map(x => x.trim())).filter(r => r[0]); %>
+<section class="v2-sec">
+  <div class="v2-head"><div><span class="kicker">经历</span><h2>从图板到 AI</h2></div></div>
+  <div class="v2-rows v2-reveal in">
+    <% rows('about.timeline').forEach(([when, what, note]) => { %>
+    <div class="v2-row"><span class="tnum v2-muted" style="font-size:14px"><%= when %></span><div><h3><%= what %></h3><% if (note) { %><p class="v2-muted" style="margin-top:6px"><%= note %></p><% } %></div><span></span></div>
+    <% }) %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec">
+  <div class="v2-head"><div><span class="kicker">资质与身份</span><h2>可以查证的</h2></div></div>
+  <div class="v2-trust" style="padding:0">
+    <% rows('about.credentials').forEach(([name, note]) => { %><div><b><%= name %></b><%= note || '' %></div><% }) %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec" id="courses">
+  <div class="v2-head"><div><span class="kicker">主讲课程</span><h2>按岗位讲，讲完能用</h2></div><p class="v2-muted">需求诊断 → 方案设计 → MVP 验证 → 交付优化，培训只是起点。</p></div>
+  <div class="v2-rows">
+    <% rows('about.courses').forEach(([name, note]) => { %>
+    <div class="v2-row"><h3><%= name %></h3><p class="v2-muted"><%= note || '' %></p><span></span></div>
+    <% }) %>
+  </div>
+  <div class="v2-cta"><a class="btn btn-secondary" href="/courses">线上课程 →</a></div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec">
+  <div class="v2-head"><div><span class="kicker">授课现场</span><h2><%- ct('home.photos_title') %></h2></div></div>
+  <div class="v2-photos">
+    <% for (let i = 1; i <= 5; i++) { const src = ctImg('home.photo' + i); if (!src) continue; %>
+    <figure><img src="<%- src %>" alt="<%= ctRaw('home.photo' + i + '_cap') %>" loading="lazy"><figcaption><%- ct('home.photo' + i + '_cap') %></figcaption></figure>
+    <% } %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec" id="book">
+  <div class="v2-split">
+    <div><span class="kicker">著作</span><h2 style="font-weight:400;font-size:clamp(24px,2.8vw,36px);margin:0"><%- ct('about.book_title') %></h2>
+      <p class="v2-lead"><%- ct('about.book_body') %></p></div>
+    <span class="v2-badge plain">待出版</span>
+  </div>
+</section>
+<hr class="hairline">

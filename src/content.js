@@ -93,13 +93,18 @@ const REGISTRY = [
   { key: 'site.ip_url', group: '全站', label: '个人主页（IP 站）地址', type: T, def: 'https://ip.geopro.cc' },
 
   // —— 关于 ——
-  { key: 'about.subtitle', group: '关于', label: '身份说明', type: T, def: '制造业AI应用专家 · 深耕暖通行业，帮助制造企业把 AI 用进业务流程' },
-  { key: 'about.bio', group: '关于', label: '个人自述', type: TA, def: '20 多年制造业从业经验，深耕 AI 与企业业务的落地融合。我相信 AI 的价值不在演示里，而在流程里——在选型表、竞品库、专利稿和车间的日报里。这个网站是我的工作台：工具给同行用，服务给企业用，课程和文章给想把 AI 用起来的每一个人。' },
-  { key: 'about.bio_en', group: '关于', label: '英文注脚', type: T, def: '20+ years in manufacturing. Making AI land in real business — starting with HVAC.' },
+  { key: 'about.subtitle', group: '关于', label: '身份说明', type: T, def: 'AI 企业落地顾问 · 美的 20 年研发、制造、营销 · 现任家电企业副总经理' },
+  { key: 'about.bio', group: '关于', label: '个人自述', type: TA, def: '在美的干了 20 年：研发 8 年、生产制造 5 年、海外营销 5 年、国内营销 2 年。2022 年起任一家北美高端空调品牌的副总经理，分管制造、品质和供应链，并负责企业的 AI 数字化转型。我相信 AI 的价值不在演示里，而在流程里——在评审会、产线工位、售后工单和报价单里。' },
+  { key: 'about.bio_en', group: '关于', label: '英文注脚', type: T, def: '20 years at a Fortune Global 500 manufacturer. Now putting AI to real work in factories.' },
   { key: 'about.contact_email', group: '关于', label: '联系 · 邮箱', type: T, def: 'hello@alan-ai.example' },
   { key: 'about.contact_wechat', group: '关于', label: '联系 · 微信', type: T, def: 'alan_hvac_ai（占位）' },
   { key: 'about.contact_linkedin', group: '关于', label: '联系 · LinkedIn', type: T, def: '/in/alan-hvac-ai（占位）' },
-  { key: 'about.contact_mp', group: '关于', label: '联系 · 公众号', type: T, def: 'Alan 的 AI 工作台（占位）' },
+  { key: 'about.contact_mp', group: '关于', label: '联系 · 公众号', type: T, def: 'Alan 的 AI 世界' },
+  { key: 'about.timeline', group: '关于', label: '经历时间线（每行：时间｜单位·岗位｜说明）', type: TA, def: '2003–2010｜美的 · 中央空调研发｜结构工程师 → 项目经理 → 结构组组长。做南美美式风管机，负责首代北美产品与认证。\n2010–2015｜美的 · 生产制造｜顺德工厂工程部负责人，后外派合肥工厂全面负责工程部。推行单元式作业和价值流拉动。\n2015–2020｜美的 · 海外营销｜产品企划、北美大区技术支持负责人、全球产品企划。\n2020–2022｜美的 · 国内营销｜技术支持模块负责人，搭建内销培训体系。\n2022–今｜北美高端空调品牌 · 副总经理｜从代工转自主制造，品质体系从零搭建；分管制造、品质、供应链和 AI 数字化转型。\n2023–今｜AI 实践与企业服务｜AI 破局俱乐部行动家、企培中心佛山区域负责人，发起北滘 AI 夜校，为企业、协会、党校做 AI 培训。' },
+  { key: 'about.credentials', group: '关于', label: '资质与身份（每行：名称｜说明）', type: TA, def: '工信部 AIGC 应用工程师｜高级\n深圳人工智能专委会｜会员\nAI 破局企培中心｜佛山区域负责人\n北滘 AI 夜校｜发起人\n中南大学 · 南京大学｜机电一体化 · MBA' },
+  { key: 'about.courses', group: '关于', label: '主讲课程（每行：课程｜一句话）', type: TA, def: 'AI 企业赋能｜管理层视角：AI 能干什么、先干什么、怎么验收\nAI 办公提效 / 职场 AI 工具实战｜文档、表格、会议、写作，当场用起来\nAI 智能体应用及实战｜WorkBuddy、OpenClaw 等平台的企业落地\n企业 / 个人知识库 AI 化搭建｜让 AI 读懂你公司的资料\nGEO 品牌营销 · 数字人与 IP｜让品牌内容被 AI 引用，打造个人 IP\n定制化培训｜销售、行政、管理层等场景定制' },
+  { key: 'about.book_title', group: '关于', label: '著作 · 书名', type: T, def: '《FDE 实战：技术、方法与行业落地》' },
+  { key: 'about.book_body', group: '关于', label: '著作 · 说明', type: TA, def: '合著，负责制造业落地章节：一家家电企业用售后运行数据做故障预警的工程实录。待出版。' },
   { key: 'about.msg_title', group: '关于', label: '留言区 · 标题', type: T, def: '留言给我' },
   { key: 'about.msg_body', group: '关于', label: '留言区 · 说明', type: TA, def: '企业合作、课程咨询、工具反馈，或任何想聊的话题。' },
 
