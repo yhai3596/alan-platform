@@ -28,7 +28,10 @@
     <div class="v2-grid">
       <% c.related.forEach(r => { %>
       <div class="v2-card"><span class="tag-line"><%= r.in_use ? '企业在用' : '系统' %></span><h3><%= r.name %></h3><p><%= r.one_liner || '' %></p>
-        <% if (r.urls && r.urls[0]) { %><span class="foot"><a class="v2-badge" href="<%= r.urls[0] %>" target="_blank" rel="noopener" style="text-decoration:none"><%= r.link_label || '在线试用 ↗' %></a></span><% } %></div>
+        <% if (r.contact_label || (r.urls && r.urls[0])) { %><span class="foot">
+          <% if (r.contact_label) { %><a class="v2-badge" href="/#contact" style="text-decoration:none"><%= r.contact_label %></a><% } %>
+          <% if (r.urls && r.urls[0]) { %><a class="v2-badge plain" href="<%= r.urls[0] %>" target="_blank" rel="noopener" style="text-decoration:none"><%= r.link_label || '在线试用 ↗' %></a><% } %>
+        </span><% } %></div>
       <% }) %>
     </div>
   </section>

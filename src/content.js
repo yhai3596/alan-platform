@@ -86,7 +86,7 @@ const REGISTRY = [
   { key: 'home.about_title', group: '首页', label: '关于 · 标题（换行分行）', type: TA, def: '研发、制造、营销都干过，\n现在亲手做 AI' },
   { key: 'home.about_body', group: '首页', label: '关于 · 介绍', type: TA, def: '2003 年进美的做研发，之后管过工厂、做过北美市场，2022 年起任家电企业副总经理，分管制造、品质和供应链。AI 破局企培中心佛山区域负责人，北滘 AI 夜校发起人。' },
   { key: 'home.contact_title', group: '首页', label: '联系 · 标题', type: T, def: '说说你的场景' },
-  { key: 'home.contact_body', group: '首页', label: '联系 · 介绍', type: TA, def: '扫码关注公众号「Alan 的 AI 世界」，留言你的行业和想解决的问题；也可以留下邮箱，我会回复。' },
+  { key: 'home.contact_body', group: '首页', label: '联系 · 介绍', type: TA, def: '扫码关注公众号「Alan 的 AI 世界」，留言你的行业和想解决的问题；想试用专利交底系统，留言「试用」获取账号。也可以留下邮箱，我会回复。' },
   { key: 'site.qr_mp', group: '全站', label: '公众号二维码', type: IMG, def: '/assets/v2/qr-mp.jpg' },
   { key: 'site.brand', group: '全站', label: '导航品牌名', type: T, def: 'Alan 的 AI 世界' },
   { key: 'site.brand_sub', group: '全站', label: '导航品牌副标', type: T, def: '企业 AI 落地' },
