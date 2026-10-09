@@ -1,0 +1,53 @@
+<!-- v2.0 首页中段：怎么做 → 合作方式 → 授课现场 → 数据承诺 → 关于（文案全部走 content.js 注册表） -->
+<section class="v2-sec" id="method">
+  <div class="v2-head"><div><span class="kicker">怎么做</span><h2><%- ct('home.method_title') %></h2></div><p class="v2-muted"><%- ct('home.method_body') %></p></div>
+  <div class="v2-steps v2-reveal">
+    <% for (let i = 1; i <= 4; i++) { %>
+    <div class="v2-step"><span class="n">0<%= i %></span><h3><%- ct('home.step' + i + '_title') %></h3><p class="v2-muted"><%- ct('home.step' + i + '_body') %></p></div>
+    <% } %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec" id="service">
+  <div class="v2-head"><div><span class="kicker">合作方式</span><h2><%- ct('home.service_title') %></h2></div></div>
+  <div class="v2-rows v2-reveal">
+    <% const svcLinks = [['/diagnosis', '先做在线问卷 →'], ['/courses', '课程清单 →'], ['/services', '了解详情 →'], ['/services', '了解详情 →']]; %>
+    <% for (let i = 1; i <= 4; i++) { %>
+    <div class="v2-row"><h3><%- ct('home.svc' + i + '_title') %></h3><p class="v2-muted"><%- ct('home.svc' + i + '_body') %></p><a href="<%= svcLinks[i - 1][0] %>" style="font-size:14px;white-space:nowrap"><%= svcLinks[i - 1][1] %></a></div>
+    <% } %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec">
+  <div class="v2-head"><div><span class="kicker">授课现场</span><h2><%- ct('home.photos_title') %></h2></div><p class="v2-muted"><%- ct('home.photos_body') %></p></div>
+  <div class="v2-photos v2-reveal">
+    <% for (let i = 1; i <= 5; i++) { const src = ctImg('home.photo' + i); if (!src) continue; %>
+    <figure><img src="<%- src %>" alt="<%= ctRaw('home.photo' + i + '_cap') %>" loading="lazy"><figcaption><%- ct('home.photo' + i + '_cap') %></figcaption></figure>
+    <% } %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec">
+  <div class="v2-head"><div><span class="kicker">我怎么处理你的数据</span><h2><%- ct('home.pledge_title') %></h2></div><p class="v2-muted"><%- ct('home.pledge_body') %></p></div>
+  <div class="v2-pledge v2-reveal">
+    <% for (let i = 1; i <= 4; i++) { %>
+    <div><h3><%- ct('home.pledge' + i + '_title') %></h3><p class="v2-muted"><%- ct('home.pledge' + i + '_body') %></p></div>
+    <% } %>
+  </div>
+</section>
+<hr class="hairline">
+
+<section class="v2-sec">
+  <div class="v2-split">
+    <div>
+      <span class="kicker">关于 <%= ctRaw('id.name') %></span>
+      <h2 style="font-weight:400;font-size:clamp(26px,3vw,40px);line-height:1.25;margin:0"><%- ctBr('home.about_title') %></h2>
+      <p class="v2-lead"><%- ct('home.about_body') %></p>
+      <div class="v2-cta"><a class="btn btn-secondary" href="/about">完整经历</a><a class="btn btn-secondary" href="<%= ctRaw('site.ip_url') %>" target="_blank" rel="noopener">个人主页 ↗</a></div>
+    </div>
+  </div>
+</section>
+<hr class="hairline">

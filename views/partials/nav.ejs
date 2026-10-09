@@ -1,14 +1,19 @@
 <nav class="nav site-nav">
-  <a href="/" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:baseline;gap:10px">Alan<span style="color:var(--color-accent)">.</span><span style="font-family:'Lora','Noto Serif SC',serif;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-neutral-600)"><%= ctRaw('id.title') %></span></a>
-  <% const navItems = [['首页','/'],['工具集','/tools'],['企业AI服务','/services'],['AI课程','/courses'],['案例·培训','/cases'],['AI资讯','/blog'],['关于','/about']]; %>
-  <% for (const [label, href] of navItems) { %>
-  <a href="<%= href %>"<%- active === label ? ' aria-current="page"' : '' %>><%= label %></a>
+  <a href="/" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:baseline;gap:10px"><%= ctRaw('site.brand') %><span style="font-family:'Lora','Noto Serif SC',serif;font-size:11px;letter-spacing:0.12em;color:var(--color-neutral-600)"><%= ctRaw('site.brand_sub') %></span></a>
+  <%# v2.0 导航：第三项是路由里 active 的取值，沿用原有口径，路由不用改 %>
+  <% const navItems = [['落地案例', '/cases', '案例·培训'], ['合作方式', '/services', '企业AI服务'], ['在线工具', '/tools', '工具集'], ['AI 课程', '/courses', 'AI课程'], ['资讯', '/blog', 'AI资讯'], ['关于', '/about', '关于']]; %>
+  <span class="nav-links">
+  <% for (const [label, href, key] of navItems) { %>
+  <a href="<%= href %>"<%- active === key ? ' aria-current="page"' : '' %>><%= label %></a>
   <% } %>
   <% if (user) { %>
   <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap">你好，<%= user.name %></span>
   <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">后台</a><% } %>
   <a href="#" id="nav-logout" style="font-size:13px">退出</a>
   <% } else { %>
-  <a class="btn btn-primary" href="/login" style="text-decoration:none">登录 · Sign in</a>
+  <a href="/login" style="font-size:13px">登录</a>
   <% } %>
+  </span>
+  <button type="button" class="nav-menu-btn" aria-label="菜单" onclick="this.parentNode.classList.toggle('open')">菜单</button>
+  <a class="btn btn-primary" href="/#contact" style="text-decoration:none"><%- ct('home.cta_primary') %></a>
 </nav>

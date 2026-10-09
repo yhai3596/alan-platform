@@ -9,9 +9,21 @@ const { raw } = require('../content');
 
 const router = express.Router();
 
+// v2.0 案例：related_json 解析 + 卡片一句话（取问题的第一句，去掉括号里的出处注释；"待补"不上卡片）
+function caseView(c) {
+  let related = [];
+  try { related = JSON.parse(c.related_json || '[]'); } catch (_) { /* 坏数据按无关联处理 */ }
+  const first = String(c.problem || c.description || '').split('\n')[0].replace(/^-\s*/, '')
+    .replace(/[（(][^）)]*[）)]/g, '').split(/[。；;]/)[0].trim();
+  return { ...c, related, hook: first.startsWith('待补') ? '' : first };
+}
+const liveCases = () => db.prepare('SELECT * FROM cases WHERE archived=0 ORDER BY in_use DESC, sort, id').all().map(caseView);
+
 router.get('/', (req, res) => {
-  const posts = db.prepare("SELECT * FROM posts WHERE status='published' ORDER BY published_at DESC LIMIT 3").all();
-  res.render('home', { title: `${pageTitle()} — 把 AI 真正用进暖通与制造业`, active: '首页', posts });
+  const cases = liveCases();
+  const tools = db.prepare("SELECT * FROM tools WHERE archived=0 AND status='live' AND url<>'' ORDER BY no LIMIT 5").all();
+  const inUse = cases.filter(c => c.in_use).length;
+  res.render('home', { title: `${pageTitle()} — 懂工厂的人，把 AI 落进业务`, active: '首页', cases, tools, inUse });
 });
 
 router.get('/about', (req, res) => {
