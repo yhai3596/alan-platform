@@ -8,7 +8,7 @@
   <% } %>
   <% if (user) { %>
   <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap">你好，<%= user.name %></span>
-  <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">后台</a><% } %>
+  <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">后台</a><a href="https://wbc.geopro.cc" target="_blank" rel="noopener" style="font-size:13px">案例工作台 ↗</a><% } %>
   <a href="#" id="nav-logout" style="font-size:13px">退出</a>
   <% } else { %>
   <a href="/login" style="font-size:13px">登录</a>
