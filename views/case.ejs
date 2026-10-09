@@ -1,0 +1,47 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <!-- v2.0 案例详情：背景 → 问题 → 为什么先做 → 做法 → 结果 → 踩坑 → 适合谁 → 相关系统（PLAN.md 第 5 节模板） -->
+  <article class="v2-sec v2-case">
+    <a href="/cases" class="v2-muted" style="font-size:14px;text-decoration:none">← 全部案例</a>
+    <p class="v2-eyebrow" style="margin-top:28px"><%= c.scene || '案例' %><% if (c.in_use) { %> · <span class="v2-badge">企业在用</span><% } %></p>
+    <h1 class="v2-h1" style="font-size:clamp(28px,3.6vw,46px)"><%= c.title %></h1>
+    <div class="v2-meta">
+      <div><span>客户</span><%- fieldHtml(c.client_desc || c.org) %></div>
+      <div><span>行业</span><%- fieldHtml(c.industry) %></div>
+      <div><span>周期</span><%- fieldHtml(c.period) %></div>
+      <div><span>我的角色</span><%- fieldHtml(c.my_role) %></div>
+    </div>
+    <% const blocks = [['原来的问题', c.problem || c.description], ['为什么先做这个', c.why_this], ['怎么做的', c.approach], ['结果', c.results], ['踩过的坑', c.lessons], ['适合谁复制', c.replicable_for], ['用到的工具', c.tools_used]]; %>
+    <% blocks.forEach(([h, v]) => { %>
+    <h2><%= h %></h2>
+    <%- fieldHtml(v) %>
+    <% if (h === '结果') { %><p class="v2-muted" style="font-size:13px">结果只写有出处的事实；没有出处的数字不上站。</p><% } %>
+    <% }) %>
+  </article>
+
+  <% if (c.related.length) { %>
+  <hr class="hairline">
+  <section class="v2-sec">
+    <div class="v2-head"><div><span class="kicker">相关系统</span><h2>这个案例里在干活的系统</h2></div></div>
+    <div class="v2-grid">
+      <% c.related.forEach(r => { %>
+      <div class="v2-card"><span class="tag-line"><%= r.in_use ? '企业在用' : '系统' %></span><h3><%= r.name %></h3><p><%= r.one_liner || '' %></p></div>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <hr class="hairline">
+  <section class="v2-sec">
+    <div class="v2-split">
+      <div><h2 style="font-weight:400;font-size:clamp(24px,2.6vw,34px);margin:0">你也有类似的问题？</h2>
+        <p class="v2-lead">说说你的行业和现在的做法，先判断值不值得用 AI 做。</p></div>
+      <a class="btn btn-primary" href="/#contact" style="text-decoration:none"><%- ct('home.cta_primary') %></a>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

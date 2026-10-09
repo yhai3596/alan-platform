@@ -70,8 +70,31 @@ router.get('/article/:slug', (req, res) => {
 });
 
 router.get('/cases', (req, res) => {
-  const cases = db.prepare('SELECT * FROM cases WHERE archived=0 ORDER BY sort').all();
-  res.render('cases', { title: pageTitle('案例与培训'), active: '案例·培训', cases, description: `${raw('id.name')}（${raw('id.title')}）的企业 AI 落地项目与培训记录。` });
+  const cases = liveCases();
+  res.render('cases', { title: pageTitle('落地案例'), active: '案例·培训', cases, description: `${raw('id.name')}（${raw('id.title')}）做过的企业 AI 落地案例：每个案例讲清原来的问题、做法和结果。` });
+});
+
+// 案例字段 → HTML：先转义；"- " 开头的行变列表；括号里的出处注释（书稿/登记库/Alan 确认）降为小号灰字；"待补"显示虚线标记
+function fieldHtml(text) {
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const inline = s => esc(s)
+    .replace(/[（(]([^（）()]*?(?:书稿|登记库|Alan 确认|经协调方|p\d)[^（）()]*?)[）)]/g, '<span class="v2-src">$1</span>')
+    .replace(/待补/g, '<span class="v2-todo">待补</span>');
+  const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return '<p><span class="v2-todo">待补</span></p>';
+  if (lines.every(l => l.startsWith('- '))) return '<ul>' + lines.map(l => `<li>${inline(l.slice(2))}</li>`).join('') + '</ul>';
+  return lines.map(l => `<p>${inline(l.replace(/^- /, ''))}</p>`).join('');
+}
+
+router.get('/cases/:slug', (req, res, next) => {
+  const row = db.prepare('SELECT * FROM cases WHERE archived=0 AND (slug=? OR id=?)').get(req.params.slug, Number(req.params.slug) || -1);
+  if (!row) return next();
+  const c = caseView(row);
+  res.render('case', {
+    title: pageTitle(c.title), active: '案例·培训', c, fieldHtml,
+    description: c.hook ? `${c.title}：${c.hook}。` : c.title,
+    canonical: `${require('../seo').SITE_URL}/cases/${c.slug || c.id}`,
+  });
 });
 
 router.get('/courses', (req, res) => {

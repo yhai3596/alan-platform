@@ -62,6 +62,9 @@ function publicUrls(db) {
   return [
     ...PUBLIC_PAGES.map(p => ({ loc: SITE_URL + p, lastmod: p === '/' || p === '/blog' ? latest : null })),
     ...posts.map(p => ({ loc: `${SITE_URL}/article/${encodeURIComponent(p.slug)}`, lastmod: day(p.updated_at) || day(p.published_at) })),
+    // v2.0 案例详情页（登记库同步来的、未归档的）
+    ...db.prepare("SELECT slug, synced_at FROM cases WHERE archived=0 AND slug<>''").all()
+      .map(c => ({ loc: `${SITE_URL}/cases/${encodeURIComponent(c.slug)}`, lastmod: day(c.synced_at) })),
   ];
 }
 

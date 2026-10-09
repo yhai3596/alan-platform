@@ -180,3 +180,15 @@ a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
   .nav-menu-btn{display:inline-flex;align-items:center;margin-left:auto}
   .site-nav > .btn-primary{display:none}
 }
+/* v2.0 案例详情 */
+.v2-case{max-width:780px}
+.v2-case h2{font-weight:600;font-size:22px;margin:44px 0 12px}
+.v2-case p,.v2-case li{font-size:16px;line-height:30px;color:color-mix(in srgb,var(--color-text) 86%,transparent)}
+.v2-case ul{padding-left:20px;margin:0}
+.v2-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;padding:20px 0;margin-top:28px;border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider);font-size:14px}
+.v2-meta > div > span:first-child{display:block;font-size:12px;color:color-mix(in srgb,var(--color-text) 55%,transparent)}
+.v2-meta p{margin:0;font-size:14px;line-height:22px}
+.v2-src{font-size:12px;color:color-mix(in srgb,var(--color-text) 45%,transparent);margin:0 2px}
+.v2-src::before{content:"〔"}.v2-src::after{content:"〕"}
+.v2-todo{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--color-text) 40%,transparent);color:color-mix(in srgb,var(--color-text) 55%,transparent);font-size:12px;vertical-align:2px;margin-right:4px}
+@media (max-width:1024px){.site-nav > .btn-primary{display:none}} /* 中等宽度导航保持单行：首屏已有同一个按钮 */
