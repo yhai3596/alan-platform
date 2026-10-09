@@ -100,8 +100,13 @@ router.get('/cases/:slug', (req, res, next) => {
 // v2.1 行业案例库（公开的行业 AI 应用案例，非 Alan 交付）
 const J = (s, d) => { try { return JSON.parse(s); } catch (_) { return d; } };
 function industryView(r) {
-  return { ...r, facts: J(r.facts_json, []), tools: J(r.tools_json, []), sources: J(r.sources_json, []),
-    dec: J(r.decomposition_json, {}), rep: J(r.replication_json, {}) };
+  // 防御：字段类型不对时也不能让页面 500（曾出现 facts 是字符串的旧数据）
+  const arr = v => (Array.isArray(v) ? v : (v ? String(v).split(/\n+/).filter(Boolean) : []));
+  const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const rep = obj(J(r.replication_json, {}));
+  for (const k of ['gaps', 'skills_needed', 'connectors_needed', 'manual_steps', 'risks']) rep[k] = arr(rep[k]);
+  return { ...r, facts: arr(J(r.facts_json, [])), tools: arr(J(r.tools_json, [])), sources: arr(J(r.sources_json, [])).filter(s => s && s.url),
+    dec: obj(J(r.decomposition_json, {})), rep };
 }
 router.get('/industry', (req, res) => {
   const items = db.prepare('SELECT * FROM industry_cases WHERE archived=0 ORDER BY published_at DESC, id DESC').all().map(industryView);

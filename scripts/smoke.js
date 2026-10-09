@@ -14,6 +14,14 @@ function check(name, ok, detail = '') {
     const r = await fetch(BASE + p).catch(() => null);
     check(`GET ${p}`, !!r && r.status === 200, r ? String(r.status) : 'no response');
   }
+  // v2.1：案例详情页逐个抽查（曾因旧数据字段类型不对导致详情页 500，列表页却是 200）
+  for (const [list, prefix] of [['/cases', '/cases/'], ['/industry', '/industry/']]) {
+    const html = await fetch(BASE + list).then(r => (r.ok ? r.text() : '')).catch(() => '');
+    const slugs = [...new Set([...html.matchAll(new RegExp(`href="${prefix}([^"]+)"`, 'g'))].map(m => m[1]))];
+    let bad = 0;
+    for (const sl of slugs) { const r = await fetch(BASE + prefix + sl).catch(() => null); if (!r || r.status !== 200) bad++; }
+    check(`GET ${prefix}* 全部详情页`, slugs.length > 0 && bad === 0, `${slugs.length} 页，失败 ${bad}`);
+  }
   const admin = await fetch(BASE + '/admin', { redirect: 'manual' }).catch(() => null);
   check('GET /admin 未登录跳转', !!admin && [301, 302, 303].includes(admin.status));
 

@@ -31,6 +31,8 @@ const SKIP_STATUS = new Set(['REJECTED', 'ARCHIVED']);
 const RISKY = /(?<!\d)1[3-9]\d{9}(?!\d)|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|ecoer|宜所/i; // 手机号、邮箱、雇主品牌
 const norm = u => String(u || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
 const richness = c => JSON.stringify(c).length;
+// wb 实例的 facts / inference 是多行文本，wbc 是数组：统一成数组
+const toList = v => Array.isArray(v) ? v : String(v || '').split(/\n+/).map(x => x.replace(/^\s*(?:[-*•]|\d+[.、)])\s*/, '').trim()).filter(Boolean);
 
 // 读入并合并
 const seen = new Map();
@@ -46,7 +48,7 @@ for (const f of FILES) {
     if (!EVIDENCE_OK.has(c.evidence_level)) { skipped.evidence++; continue; }
     if (SKIP_STATUS.has(c.status)) { skipped.status++; continue; }
     if ((c.flags || []).includes('UNVERIFIED_IDEA')) { skipped.flag++; continue; }
-    const pub = [c.title, c.summary, c.enterprise_problem, ...(c.facts || [])].join('\n');
+    const pub = [c.title, c.summary, c.enterprise_problem, ...toList(c.facts)].join('\n');
     if (RISKY.test(pub)) { skipped.risky++; continue; }
     const key = norm(c.canonical_url || c.url);
     if (!key) continue;
@@ -66,7 +68,7 @@ const rows = [...seen.entries()].map(([key, { c, inst }]) => {
     industry: tx.industry || '', func: tx.function || '', pattern: tx.workflow_pattern || '', pattern_label: tx.pattern_label || '',
     evidence_level: c.evidence_level || '', evidence_notes: c.evidence_notes || '',
     rep_level: repl.level || '', rep_label: repl.level_label || '', is_workbuddy: c.is_workbuddy_case ? 1 : 0,
-    facts_json: JSON.stringify(c.facts || []), tools_json: JSON.stringify(c.original_tools || []),
+    facts_json: JSON.stringify(toList(c.facts)), tools_json: JSON.stringify(toList(c.original_tools)),
     sources_json: JSON.stringify((c.sources || []).filter(s => s && s.url).map(s => ({ name: s.name || '', url: s.url, tier: s.tier || '' }))),
     decomposition_json: JSON.stringify(c.decomposition || {}),
     // 复制评估只取对外有意义的部分；内部用的分值、团队备注不带
