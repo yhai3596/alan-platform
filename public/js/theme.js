@@ -44,5 +44,6 @@
     try { return localStorage.getItem(KEY) || DEFAULT_NAME; } catch (e) { return DEFAULT_NAME; }
   }
   window.AlanTheme = { PALETTES: PALETTES, apply: apply, current: current };
-  apply(current());
+  // v2.0：企业站固定「鎏金纸本」（DemoWall/DESIGN.md 已定，不给访客切换）；以前存过别的配色的访客也统一回到默认
+  apply(DEFAULT_NAME);
 })();
