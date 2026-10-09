@@ -43,7 +43,7 @@
       <a class="v2-card v2-reveal" href="/cases/<%= c.slug || c.id %>" data-scene="<%= c.scene %>" data-i="<%= i %>">
         <span class="tag-line"><%= c.scene || '案例' %><%= c.industry ? ' · ' + c.industry.split('/')[0].trim() : '' %></span>
         <h3><%= c.title %></h3>
-        <p><%= c.hook || '原来的问题与损失：待补' %></p>
+        <% if (c.hook) { %><p><%= c.hook %></p><% } %>
         <span class="foot"><span class="v2-badge<%= c.in_use ? '' : ' plain' %>"><%= c.in_use ? '企业在用' : '进行中' %></span><% if (c.related.length) { %><span class="v2-muted"><%= c.related.length %> 个系统</span><% } %></span>
       </a>
       <% }) %>
