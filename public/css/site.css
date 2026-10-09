@@ -192,3 +192,6 @@ a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
 .v2-src::before{content:"〔"}.v2-src::after{content:"〕"}
 .v2-todo{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--color-text) 40%,transparent);color:color-mix(in srgb,var(--color-text) 55%,transparent);font-size:12px;vertical-align:2px;margin-right:4px}
 @media (max-width:1024px){.site-nav > .btn-primary{display:none}} /* 中等宽度导航保持单行：首屏已有同一个按钮 */
+/* v2.1 行业案例库筛选条 */
+.v2-filter{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:center;margin-bottom:16px}
+@media (max-width:1024px){.v2-filter{grid-template-columns:1fr 1fr}.v2-filter #q{grid-column:1/-1}}

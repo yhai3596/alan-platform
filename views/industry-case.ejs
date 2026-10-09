@@ -1,0 +1,58 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <!-- v2.1 行业案例详情：事实 → 怎么做的（流程拆解）→ 复制评估（AI 初评）→ 来源。AI 推断与内部建议不公开 -->
+  <article class="v2-sec v2-case">
+    <a href="/industry" class="v2-muted" style="font-size:14px;text-decoration:none">← 行业案例库</a>
+    <p class="v2-eyebrow" style="margin-top:28px">行业参考 · <%= c.industry || '跨行业' %><%= c.func ? ' · ' + c.func : '' %> · <span class="v2-badge plain">证据 <%= c.evidence_level %></span></p>
+    <h1 class="v2-h1" style="font-size:clamp(26px,3.4vw,42px)"><%= c.title %></h1>
+    <p class="v2-muted" style="font-size:13px;margin-top:12px">这是公开报道的其他企业案例，不是 Alan 交付的项目。内容由 AI 收集整理，以原文为准。</p>
+    <div class="v2-meta">
+      <% [['发布日期', c.published_at], ['工作流模式', c.pattern_label || c.pattern], ['用到的工具', c.tools.join('、')], ['复制难度', c.rep.difficulty]].filter(([, v]) => v).forEach(([k, v]) => { %>
+      <div><span><%= k %></span><p><%= v %></p></div>
+      <% }) %>
+    </div>
+
+    <% if (c.problem) { %><h2>企业遇到的问题</h2><p><%= c.problem %></p><% } %>
+    <% if (c.summary) { %><h2>概要</h2><p><%= c.summary %></p><% } %>
+    <% if (c.facts.length) { %><h2>原文写明的事实</h2><ul><% c.facts.slice(0, 8).forEach(f => { %><li><%= f %></li><% }) %></ul><% if (c.facts.length > 8) { %><p class="v2-muted" style="font-size:13px">还有 <%= c.facts.length - 8 %> 条细节，见文末原文来源。</p><% } %><% } %>
+
+    <% const D = [['输入', c.dec.input], ['处理', c.dec.processing], ['数据', c.dec.data], ['动作', c.dec.action], ['输出', c.dec.output]].filter(([, v]) => v); %>
+    <% if (D.length) { %><h2>怎么做的</h2><ul><% D.forEach(([k, v]) => { %><li><b><%= k %></b>：<%= v %></li><% }) %></ul><% } %>
+
+    <% const R = c.rep; const has = a => Array.isArray(a) && a.length; %>
+    <% if (R.difficulty || has(R.gaps) || has(R.manual_steps) || has(R.risks) || R.maturity_statement) { %>
+    <h2>如果你也想做：复制评估</h2>
+    <p class="v2-muted" style="font-size:13px">AI 初评，供参考。具体能不能做，要看你企业的数据、流程和人。</p>
+    <ul>
+      <% if (R.difficulty) { %><li><b>难度</b>：<%= R.difficulty %><%= c.rep_label ? '（' + c.rep_label + '）' : '' %></li><% } %>
+      <% if (has(R.skills_needed)) { %><li><b>需要的能力</b>：<%= R.skills_needed.join('、') %></li><% } %>
+      <% if (has(R.connectors_needed)) { %><li><b>需要接的数据/系统</b>：<%= R.connectors_needed.join('、') %></li><% } %>
+      <% if (has(R.manual_steps)) { %><li><b>仍需人工的环节</b>：<%= R.manual_steps.join('；') %></li><% } %>
+      <% if (has(R.risks)) { %><li><b>风险</b>：<%= R.risks.join('；') %></li><% } %>
+      <% if (has(R.gaps)) { %><li><b>原文没披露的</b>：<%= R.gaps.join('；') %></li><% } %>
+    </ul>
+    <% if (R.maturity_statement) { %><p><%= R.maturity_statement %></p><% } %>
+    <% } %>
+
+    <h2>来源</h2>
+    <ul>
+      <% (c.sources.length ? c.sources : [{ name: '原文', url: c.url }]).forEach(s => { %>
+      <li><a href="<%= s.url %>" target="_blank" rel="noopener nofollow"><%= s.name || s.url %></a></li>
+      <% }) %>
+    </ul>
+    <% if (c.evidence_notes) { %><p class="v2-muted" style="font-size:13px">证据说明：<%= c.evidence_notes %></p><% } %>
+  </article>
+
+  <hr class="hairline">
+  <section class="v2-sec">
+    <div class="v2-split">
+      <div><h2 style="font-weight:400;font-size:clamp(24px,2.6vw,34px);margin:0">想在你的企业里做类似的事？</h2>
+        <p class="v2-lead">先判断值不值得做：数据在不在、流程能不能拆、谁来兜底。</p></div>
+      <a class="btn btn-primary" href="/#contact" style="text-decoration:none"><%- ct('home.cta_primary') %></a>
+    </div>
+  </section>
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

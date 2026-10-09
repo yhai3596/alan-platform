@@ -1,0 +1,84 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <!-- v2.1 行业案例库：公开报道的企业 AI 案例，不是 Alan 交付的；事实与来源公开，AI 推断与内部建议不公开 -->
+  <section class="v2-sec" style="padding-bottom:36px">
+    <span class="kicker">行业 AI 案例库</span>
+    <h1 class="v2-h1" style="font-size:clamp(30px,3.8vw,50px)">别人家的 AI，是怎么落地的</h1>
+    <p class="v2-lead">收录公开报道的企业 AI 应用案例。每条都注明原文出处和证据等级，并给出复制难度的初步评估。由 AI 每天收集整理，以原文为准。</p>
+    <div class="v2-chips" style="margin-top:28px">
+      <a class="v2-chip" href="/cases" style="display:inline-flex;align-items:center;text-decoration:none">Alan 交付的案例</a>
+      <button class="v2-chip on" type="button">行业参考（<%= items.length %>）</button>
+    </div>
+    <p class="v2-muted" style="font-size:13.5px;margin:0">证据等级：E3 原始或官方来源 · E2 两个独立来源 · E1 单一来源。</p>
+  </section>
+  <hr class="hairline">
+
+  <section class="v2-sec">
+    <% const uniq = k => [...new Set(items.map(x => x[k]).filter(Boolean))]; %>
+    <div class="v2-filter">
+      <input class="input" id="q" type="search" placeholder="搜索企业、场景、工具……" aria-label="搜索案例">
+      <select class="input" id="f-func" aria-label="职能"><option value="">全部职能</option><% uniq('func').forEach(v => { %><option><%= v %></option><% }) %></select>
+      <select class="input" id="f-pattern" aria-label="工作流模式"><option value="">全部模式</option><% uniq('pattern').forEach(v => { %><option><%= v %></option><% }) %></select>
+      <select class="input" id="f-ev" aria-label="证据等级"><option value="">全部证据</option><option value="E3">E3 原始/官方</option><option value="E2">E2 双来源</option><option value="E1">E1 单来源</option></select>
+      <label class="v2-muted" style="display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap"><input type="checkbox" id="f-wb"> 只看 WorkBuddy</label>
+    </div>
+    <div class="v2-chips" id="f-ind"><button class="v2-chip on" data-v="">全部行业</button><% uniq('industry').forEach(v => { %><button class="v2-chip" data-v="<%= v %>"><%= v %></button><% }) %></div>
+    <p class="v2-muted" id="count" style="font-size:13.5px;margin:0 0 16px"></p>
+    <div class="v2-grid" id="list">
+      <% items.forEach(c => { %>
+      <a class="v2-card" href="/industry/<%= c.slug %>" data-ind="<%= c.industry %>" data-func="<%= c.func %>" data-pattern="<%= c.pattern %>" data-ev="<%= c.evidence_level %>" data-wb="<%= c.is_workbuddy %>"
+         data-q="<%= [c.title, c.summary, c.problem, c.pattern_label, c.tools.join(' ')].join(' ').toLowerCase() %>">
+        <span class="tag-line"><%= c.industry || '跨行业' %><%= c.func ? ' · ' + c.func : '' %><%= c.published_at ? ' · ' + c.published_at : '' %></span>
+        <h3><%= c.title %></h3>
+        <% if (c.problem) { %><p><%= c.problem %></p><% } %>
+        <span class="foot"><span class="v2-badge plain">证据 <%= c.evidence_level %></span><% if (c.rep.difficulty) { %><span class="v2-badge plain">复制难度：<%= c.rep.difficulty %></span><% } %><% c.tools.slice(0, 2).forEach(t => { %><span class="v2-muted"><%= t %></span><% }) %></span>
+      </a>
+      <% }) %>
+    </div>
+    <div class="v2-cta"><button class="btn btn-secondary" id="more" type="button">加载更多</button></div>
+  </section>
+
+  <hr class="hairline">
+  <section class="v2-sec">
+    <div class="v2-split">
+      <div><h2 style="font-weight:400;font-size:clamp(24px,2.6vw,34px);margin:0">看到和你相近的场景？</h2>
+        <p class="v2-lead">别人的做法能不能搬到你那里，取决于数据、流程和人。说说你的情况，先判断值不值得做。</p></div>
+      <a class="btn btn-primary" href="/#contact" style="text-decoration:none"><%- ct('home.cta_primary') %></a>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<script>
+(function () {
+  var PAGE = 30, limit = PAGE, ind = '';
+  var list = document.getElementById('list'), cards = [].slice.call(list.children);
+  var q = document.getElementById('q'), fFunc = document.getElementById('f-func'), fPat = document.getElementById('f-pattern'),
+      fEv = document.getElementById('f-ev'), fWb = document.getElementById('f-wb'), more = document.getElementById('more'), cnt = document.getElementById('count');
+  function apply() {
+    var kw = q.value.trim().toLowerCase(), n = 0, shown = 0;
+    cards.forEach(function (c) {
+      var ok = (!ind || c.dataset.ind === ind) && (!fFunc.value || c.dataset.func === fFunc.value) && (!fPat.value || c.dataset.pattern === fPat.value)
+        && (!fEv.value || c.dataset.ev === fEv.value) && (!fWb.checked || c.dataset.wb === '1') && (!kw || c.dataset.q.indexOf(kw) > -1);
+      if (ok) n++;
+      var vis = ok && shown < limit; if (vis) shown++;
+      c.style.display = vis ? '' : 'none';
+    });
+    cnt.textContent = '共 ' + n + ' 个案例' + (n > shown ? '，已显示 ' + shown + ' 个' : '');
+    more.style.display = n > shown ? '' : 'none';
+  }
+  function reset() { limit = PAGE; apply(); }
+  [q, fFunc, fPat, fEv, fWb].forEach(function (el) { el.addEventListener(el === q ? 'input' : 'change', reset); });
+  document.getElementById('f-ind').addEventListener('click', function (e) {
+    if (e.target.dataset.v === undefined) return;
+    ind = e.target.dataset.v;
+    [].forEach.call(this.children, function (b) { b.classList.toggle('on', b === e.target); });
+    reset();
+  });
+  more.addEventListener('click', function () { limit += PAGE; apply(); });
+  apply();
+})();
+</script>
+<%- include('partials/tail') %>

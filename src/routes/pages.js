@@ -97,6 +97,26 @@ router.get('/cases/:slug', (req, res, next) => {
   });
 });
 
+// v2.1 行业案例库（公开的行业 AI 应用案例，非 Alan 交付）
+const J = (s, d) => { try { return JSON.parse(s); } catch (_) { return d; } };
+function industryView(r) {
+  return { ...r, facts: J(r.facts_json, []), tools: J(r.tools_json, []), sources: J(r.sources_json, []),
+    dec: J(r.decomposition_json, {}), rep: J(r.replication_json, {}) };
+}
+router.get('/industry', (req, res) => {
+  const items = db.prepare('SELECT * FROM industry_cases WHERE archived=0 ORDER BY published_at DESC, id DESC').all().map(industryView);
+  res.render('industry', { title: pageTitle('行业 AI 案例库'), active: '案例·培训', items,
+    description: `${items.length} 个公开报道的企业 AI 应用案例：按行业、职能、工作流模式筛选，每条注明原文来源、证据等级和复制难度。` });
+});
+router.get('/industry/:slug', (req, res, next) => {
+  const r = db.prepare('SELECT * FROM industry_cases WHERE archived=0 AND slug=?').get(req.params.slug);
+  if (!r) return next();
+  const c = industryView(r);
+  res.render('industry-case', { title: pageTitle(c.title), active: '案例·培训', c,
+    description: (c.problem ? c.problem + '。' : '') + (c.summary || '').slice(0, 80),
+    canonical: `${require('../seo').SITE_URL}/industry/${c.slug}` });
+});
+
 router.get('/courses', (req, res) => {
   const courses = db.prepare('SELECT * FROM courses WHERE archived=0 ORDER BY no').all();
   res.render('courses', { title: pageTitle('AI 课程'), active: 'AI课程', courses, description: `${raw('id.name')}（${raw('id.title')}）面向暖通与制造业从业者的 AI 实战课程。` });

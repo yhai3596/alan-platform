@@ -162,6 +162,38 @@ for (const col of ['slug', 'source', 'scene', 'industry', 'client_desc', 'proble
 addColumn('cases', 'in_use INTEGER NOT NULL DEFAULT 0');
 addColumn('cases', "related_json TEXT NOT NULL DEFAULT '[]'");
 addColumn('cases', 'synced_at TEXT');
+
+// v2.1 行业案例库：公开的行业 AI 应用案例（不是 Alan 交付的），来自 WorkBuddy 企业应用案例雷达，
+// 由 scripts/sync-industry.js 每日同步（只收真实使用案例、证据 E1 及以上、未被忽略的）。
+db.exec(`
+CREATE TABLE IF NOT EXISTS industry_cases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ext_id TEXT NOT NULL UNIQUE,            -- 幂等键：规范化后的原文链接
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL DEFAULT '',
+  published_at TEXT NOT NULL DEFAULT '',
+  summary TEXT NOT NULL DEFAULT '',
+  problem TEXT NOT NULL DEFAULT '',
+  industry TEXT NOT NULL DEFAULT '',
+  func TEXT NOT NULL DEFAULT '',
+  pattern TEXT NOT NULL DEFAULT '',
+  pattern_label TEXT NOT NULL DEFAULT '',
+  evidence_level TEXT NOT NULL DEFAULT '',
+  evidence_notes TEXT NOT NULL DEFAULT '',
+  rep_level TEXT NOT NULL DEFAULT '',
+  rep_label TEXT NOT NULL DEFAULT '',
+  is_workbuddy INTEGER NOT NULL DEFAULT 0,
+  facts_json TEXT NOT NULL DEFAULT '[]',
+  tools_json TEXT NOT NULL DEFAULT '[]',
+  sources_json TEXT NOT NULL DEFAULT '[]',
+  decomposition_json TEXT NOT NULL DEFAULT '{}',
+  replication_json TEXT NOT NULL DEFAULT '{}',
+  archived INTEGER NOT NULL DEFAULT 0,
+  synced_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_industry_live ON industry_cases(archived, published_at);
+`);
 // 存量评论：已有回复的顶层评论视为已处理，避免 Worker 重复回帖
 db.exec(`UPDATE comments SET agent_status='replied'
   WHERE parent_id IS NULL AND agent_status IS NULL

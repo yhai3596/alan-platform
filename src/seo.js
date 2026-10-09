@@ -54,7 +54,7 @@ function articleLd(post) {
 }
 
 // 公开页面清单：sitemap 与批量提交脚本共用
-const PUBLIC_PAGES = ['/', '/about', '/services', '/tools', '/cases', '/courses', '/blog', '/diagnosis'];
+const PUBLIC_PAGES = ['/', '/about', '/services', '/tools', '/cases', '/industry', '/courses', '/blog', '/diagnosis'];
 function publicUrls(db) {
   const day = s => (s ? String(s).slice(0, 10) : null);
   const posts = db.prepare("SELECT slug, published_at, updated_at FROM posts WHERE status='published' ORDER BY published_at DESC").all();
@@ -65,6 +65,10 @@ function publicUrls(db) {
     // v2.0 案例详情页（登记库同步来的、未归档的）
     ...db.prepare("SELECT slug, synced_at FROM cases WHERE archived=0 AND slug<>''").all()
       .map(c => ({ loc: `${SITE_URL}/cases/${encodeURIComponent(c.slug)}`, lastmod: day(c.synced_at) })),
+    // v2.1 行业案例库
+    ...(db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='industry_cases'").get()
+      ? db.prepare('SELECT slug, published_at FROM industry_cases WHERE archived=0').all()
+        .map(c => ({ loc: `${SITE_URL}/industry/${encodeURIComponent(c.slug)}`, lastmod: day(c.published_at) })) : []),
   ];
 }
 
