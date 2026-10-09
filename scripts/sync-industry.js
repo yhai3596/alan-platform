@@ -16,7 +16,9 @@ const Database = require('better-sqlite3');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
 const DB_PATH = path.join(DATA_DIR, 'app.db');
-const FILES = (process.env.RADAR_FILES || '/opt/wbc-radar/data/cases.json,/opt/case-radar/data/cases.json').split(',').filter(Boolean);
+// 2026-10-09 起 wb 的案例已并入 wbc，默认只读 wbc
+const FILES = (process.env.RADAR_FILES || '/opt/wbc-radar/data/cases.json').split(',').filter(Boolean);
+const REBUILD = process.argv.includes('--rebuild'); // 清空后重建（幂等键规则变更时用；先自动备份）
 const DRY = process.argv.includes('--dry-run');
 const die = (code, msg) => { console.error(`[拒绝] ${msg}`); process.exit(code); };
 
@@ -50,8 +52,10 @@ for (const f of FILES) {
     if ((c.flags || []).includes('UNVERIFIED_IDEA')) { skipped.flag++; continue; }
     const pub = [c.title, c.summary, c.enterprise_problem, ...toList(c.facts)].join('\n');
     if (RISKY.test(pub)) { skipped.risky++; continue; }
-    const key = norm(c.canonical_url || c.url);
-    if (!key) continue;
+    // 幂等键 = 原文链接 + 标题：合集类文章一篇里有多家企业，只按链接去重会把不同企业的案例合成一条
+    const link = norm(c.canonical_url || c.url);
+    if (!link) continue;
+    const key = link + '|' + String(c.title || '').toLowerCase().replace(/[\s\p{P}]+/gu, '').slice(0, 40);
     const prev = seen.get(key);
     if (!prev || richness(c) > richness(prev.c)) seen.set(key, { c, inst });
   }
@@ -92,6 +96,7 @@ const upsert = db.prepare(`INSERT INTO industry_cases (${cols.join(',')}, archiv
   ON CONFLICT(ext_id) DO UPDATE SET ${cols.filter(c => c !== 'ext_id' && c !== 'slug').map(c => `${c}=excluded.${c}`).join(', ')}, archived=0, synced_at=datetime('now')`);
 const act = { added: 0, updated: 0, archived: 0 };
 db.transaction(() => {
+  if (REBUILD) { const n = db.prepare('DELETE FROM industry_cases').run().changes; console.log(`（重建：清空 ${n} 行）`); }
   const existing = new Set(db.prepare('SELECT ext_id FROM industry_cases').all().map(r => r.ext_id));
   const keep = new Set();
   for (const r of rows) { upsert.run(r); keep.add(r.ext_id); existing.has(r.ext_id) ? act.updated++ : act.added++; }
