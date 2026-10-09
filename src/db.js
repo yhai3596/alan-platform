@@ -153,6 +153,15 @@ addColumn('courses', "cover_url TEXT NOT NULL DEFAULT ''");
 addColumn('courses', 'archived INTEGER NOT NULL DEFAULT 0');
 addColumn('tools', 'archived INTEGER NOT NULL DEFAULT 0');
 addColumn('cases', 'archived INTEGER NOT NULL DEFAULT 0');
+// v2.0 案例库：案例来自 DemoWall 资产登记库（scripts/sync-registry.js 同步），按"问题→做法→结果"展示。
+// source=登记库案例 id（同步脚本以它为幂等键）；后台手工建的案例 source 为空，同步脚本不碰。
+for (const col of ['slug', 'source', 'scene', 'industry', 'client_desc', 'problem', 'why_this', 'approach', 'results',
+  'my_role', 'period', 'lessons', 'tools_used', 'replicable_for']) {
+  addColumn('cases', `${col} TEXT NOT NULL DEFAULT ''`);
+}
+addColumn('cases', 'in_use INTEGER NOT NULL DEFAULT 0');
+addColumn('cases', "related_json TEXT NOT NULL DEFAULT '[]'");
+addColumn('cases', 'synced_at TEXT');
 // 存量评论：已有回复的顶层评论视为已处理，避免 Worker 重复回帖
 db.exec(`UPDATE comments SET agent_status='replied'
   WHERE parent_id IS NULL AND agent_status IS NULL
