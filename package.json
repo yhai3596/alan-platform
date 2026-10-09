@@ -30,5 +30,8 @@
     "nodemailer": "^7.0.4"
   },
   "license": "UNLICENSED",
-  "private": true
+  "private": true,
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
+  }
 }
