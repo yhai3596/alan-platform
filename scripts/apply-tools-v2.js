@@ -25,6 +25,8 @@ const LIST = [
     description: '热泵仿真、冷媒物性、焓湿、水力、风管、全年能耗电费等 9 个在线计算器。' },
   { name: 'CAD 图纸解析', url: 'https://cad-ai.lovable.app', access: 'open', note: '制造 · 工艺', thumb: '/assets/v2/tools/cad-ai.jpg',
     description: '上传图纸，自动算出钣金展开尺寸和物料清单，可以导出表格。' },
+  { name: 'AI 声学诊断', url: 'https://ss-ai.lovable.app', access: 'open', note: '制造 · 品质', thumb: '/assets/v2/tools/ss-ai.jpg',
+    description: '空调运行录音和运行数据按设备、时间对齐，做声学分析和异常判定。演示环境为模拟数据。' },
   { name: 'AHRI 竞品分析', url: 'https://ahri.geopro.cc', access: 'open', note: '暖通 · 市场', thumb: '/assets/v2/tools/ahri.jpg',
     description: '基于 AHRI 认证数据的竞品数据查询与竞品动态跟踪。' },
   { name: '企业 FDE 实施专家 · 交付物看板', url: 'https://fde.geopro.top', access: 'open', note: '企业 AI 落地 · 方法', thumb: '/assets/v2/tools/fde.jpg',

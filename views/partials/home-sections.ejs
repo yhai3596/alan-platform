@@ -6,6 +6,10 @@
     <div class="v2-step"><span class="n">0<%= i %></span><h3><%- ct('home.step' + i + '_title') %></h3><p class="v2-muted"><%- ct('home.step' + i + '_body') %></p></div>
     <% } %>
   </div>
+  <a class="v2-showcase v2-reveal" href="<%= ctRaw('home.fde_url') %>" target="_blank" rel="noopener" data-track="cta_click" data-track-meta="fde_dashboard">
+    <img src="/assets/v2/tools/fde.jpg" alt="FDE 交付物看板截图" loading="lazy">
+    <span class="body"><span class="tag-line">交付物演示 · 虚拟数据</span><h3><%- ct('home.fde_title') %></h3><p class="v2-muted"><%- ct('home.fde_body') %></p><span class="v2-badge">打开交付物看板 ↗</span></span>
+  </a>
 </section>
 <hr class="hairline">
 

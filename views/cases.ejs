@@ -19,6 +19,10 @@
     <% if (!cases.length) { %>
     <p class="v2-muted">案例整理中。</p>
     <% } else { %>
+    <a class="v2-showcase" href="<%= ctRaw('home.fde_url') %>" target="_blank" rel="noopener" style="margin:0 0 28px">
+      <img src="/assets/v2/tools/fde.jpg" alt="FDE 交付物看板截图" loading="lazy">
+      <span class="body"><span class="tag-line">交付物演示 · 虚拟数据</span><h3><%- ct('home.fde_title') %></h3><p class="v2-muted"><%- ct('home.fde_body') %></p><span class="v2-badge">打开交付物看板 ↗</span></span>
+    </a>
     <div class="v2-chips" id="v2-scene"><button class="v2-chip on" data-scene="">全部</button><% [...new Set(cases.map(c => c.scene).filter(Boolean))].forEach(s => { %><button class="v2-chip" data-scene="<%= s %>"><%= s %></button><% }) %></div>
     <div class="v2-grid" id="v2-cases">
       <% cases.forEach(c => { %>
