@@ -58,10 +58,15 @@
   <section class="v2-sec" id="try">
     <div class="v2-head"><div><span class="kicker">在线可试</span><h2><%- ct('home.tools_title') %></h2></div><p class="v2-muted"><%- ct('home.tools_body') %></p></div>
     <div class="v2-grid">
-      <% tools.forEach(t => { %>
-      <a class="v2-card v2-reveal" href="<%= t.url %>" target="_blank" rel="noopener" data-track="tool_click" data-track-meta="<%= t.name %>">
-        <span class="tag-line">№ <%= String(t.no).padStart(2, '0') %> · 在线可试 ↗</span>
-        <h3><%= t.name %></h3><p><%= t.description %></p>
+      <% const ACCESS = { open: '在线可试 ↗', demo: '公开演示账号 ↗', login: '需登录 ↗', contact: '联系获取试用账号' }; %>
+      <% tools.forEach(t => { const contact = t.access === 'contact'; %>
+      <a class="v2-card v2-prod v2-reveal" href="<%= contact ? '/#contact' : t.url %>"<%- contact ? '' : ' target="_blank" rel="noopener"' %> data-track="tool_click" data-track-meta="<%= t.name %>">
+        <% if (t.thumb) { %><img src="<%= t.thumb %>" alt="<%= t.name %> 界面截图" loading="lazy"><% } %>
+        <span class="body">
+          <span class="tag-line"><%= t.note || ('№ ' + String(t.no).padStart(2, '0')) %></span>
+          <h3><%= t.name %></h3><p><%= t.description %></p>
+          <span class="foot"><span class="v2-badge<%= contact ? '' : ' plain' %>"><%= ACCESS[t.access] || ACCESS.open %></span></span>
+        </span>
       </a>
       <% }) %>
       <a class="v2-card v2-reveal" href="/tools"><span class="tag-line">更多</span><h3>全部工具 →</h3><p>涉及企业数据的系统不对外开放，在案例页里用图文说明。</p></a>
@@ -84,6 +89,7 @@
           <button type="submit" class="btn btn-primary">联系我</button>
         </form>
         <p class="form-ok" id="home-subscribe-msg" style="margin-top:9px"></p>
+        <p class="v2-muted" style="font-size:12.5px;margin:4px 0 0">提交即表示你已阅读<a href="/privacy">隐私政策</a>：邮箱只用于回复你。</p>
       </div>
       <img class="v2-qr" src="<%- ctImg('site.qr_mp') %>" alt="公众号「Alan 的 AI 世界」二维码">
     </div>

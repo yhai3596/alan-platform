@@ -21,7 +21,8 @@ const liveCases = () => db.prepare('SELECT * FROM cases WHERE archived=0 ORDER B
 
 router.get('/', (req, res) => {
   const cases = liveCases();
-  const tools = db.prepare("SELECT * FROM tools WHERE archived=0 AND status='live' AND url<>'' ORDER BY no LIMIT 5").all();
+  // 在线可试：已上线、且有链接或可联系获取试用账号的工具，最多 8 个（3 列网格里第 9 格放「全部工具」）
+  const tools = db.prepare("SELECT * FROM tools WHERE archived=0 AND status='live' AND (url<>'' OR access='contact') ORDER BY no LIMIT 8").all();
   const inUse = cases.filter(c => c.in_use).length;
   res.render('home', { title: `${pageTitle()} — 懂工厂的人，把 AI 落进业务`, active: '首页', cases, tools, inUse });
 });
@@ -120,6 +121,10 @@ router.get('/industry/:slug', (req, res, next) => {
   res.render('industry-case', { title: pageTitle(c.title), active: '案例·培训', c,
     description: (c.problem ? c.problem + '。' : '') + (c.summary || '').slice(0, 80),
     canonical: `${require('../seo').SITE_URL}/industry/${c.slug}` });
+});
+
+router.get('/privacy', (req, res) => {
+  res.render('privacy', { title: pageTitle('隐私政策'), active: '', contentHtml: marked.parse(raw('privacy.body')), description: '本网站收集哪些信息、用途、存放位置，以及如何查询、更正和删除。' });
 });
 
 router.get('/courses', (req, res) => {

@@ -160,6 +160,10 @@ for (const col of ['slug', 'source', 'scene', 'industry', 'client_desc', 'proble
   addColumn('cases', `${col} TEXT NOT NULL DEFAULT ''`);
 }
 addColumn('cases', 'in_use INTEGER NOT NULL DEFAULT 0');
+// v2.2 工具：缩略图、访问方式（open 公开可用 / demo 公开演示账号 / login 需登录 / contact 联系获取试用账号）、一句说明
+addColumn('tools', "thumb TEXT NOT NULL DEFAULT ''");
+addColumn('tools', "access TEXT NOT NULL DEFAULT 'open'");
+addColumn('tools', "note TEXT NOT NULL DEFAULT ''");
 addColumn('cases', "related_json TEXT NOT NULL DEFAULT '[]'");
 addColumn('cases', 'synced_at TEXT');
 

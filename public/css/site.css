@@ -195,3 +195,7 @@ a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
 /* v2.1 行业案例库筛选条 */
 .v2-filter{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:center;margin-bottom:16px}
 @media (max-width:1024px){.v2-filter{grid-template-columns:1fr 1fr}.v2-filter #q{grid-column:1/-1}}
+/* v2.2 在线可试卡：缩略图（16:10）+ 正文 */
+.v2-prod img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top;border-bottom:1px solid var(--color-divider);display:block}
+.v2-prod .body{display:flex;flex-direction:column;gap:8px;padding:18px 20px 20px;flex:1}
+.v2-privacy table{width:100%;border-collapse:collapse;font-size:14.5px;margin:0 0 28px}.v2-privacy th,.v2-privacy td{border-bottom:1px solid var(--color-divider);padding:10px 8px;text-align:left;vertical-align:top}

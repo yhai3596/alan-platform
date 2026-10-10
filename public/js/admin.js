@@ -63,7 +63,9 @@
     tool: function (d) { d = d || { name: '', description: '', status: 'live', url: '' }; return [
       field('工具名称', 'name', d.name), field('工具介绍', 'description', d.description, 'textarea'),
       field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
-      field('工具链接（http(s)://，留空=接入中）', 'url', d.url) ]; },
+      field('工具链接（http(s)://，留空=接入中）', 'url', d.url),
+      field('访问方式', 'access', d.access || 'open', 'select', [['open', '公开可用'], ['demo', '公开演示账号'], ['login', '需登录'], ['contact', '联系获取试用账号']]),
+      field('缩略图（/assets/... 或 https://，16:10）', 'thumb', d.thumb), field('一句说明（如 演示账号见登录页）', 'note', d.note) ]; },
     case: function (d) { d = d || { org: '', title: '', description: '', metric_value: '', metric_label: '', sort: '' }; return [
       field('客户描述（如 某暖通企业 · 华东）', 'org', d.org), field('案例标题', 'title', d.title),
       field('案例说明', 'description', d.description, 'textarea'),

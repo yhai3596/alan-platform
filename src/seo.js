@@ -54,7 +54,7 @@ function articleLd(post) {
 }
 
 // 公开页面清单：sitemap 与批量提交脚本共用
-const PUBLIC_PAGES = ['/', '/about', '/services', '/tools', '/cases', '/industry', '/courses', '/blog', '/diagnosis'];
+const PUBLIC_PAGES = ['/', '/about', '/services', '/tools', '/cases', '/industry', '/courses', '/blog', '/diagnosis', '/privacy'];
 function publicUrls(db) {
   const day = s => (s ? String(s).slice(0, 10) : null);
   const posts = db.prepare("SELECT slug, published_at, updated_at FROM posts WHERE status='published' ORDER BY published_at DESC").all();

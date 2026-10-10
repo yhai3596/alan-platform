@@ -178,9 +178,13 @@ router.post('/admin/api/course', requireAdminApi, (req, res) => {
 });
 
 router.post('/admin/api/tool', requireAdminApi, (req, res) => {
-  const { id, name = '', description = '', status = 'live', url = '' } = req.body || {};
+  const { id, name = '', description = '', status = 'live', url = '', thumb = '', access = 'open', note = '' } = req.body || {};
   const t = String(name).trim();
   if (!t) return res.status(400).json({ error: '请填写工具名称' });
+  const th = String(thumb).trim();
+  if (th && !/^(https?:\/\/|\/)/.test(th)) return res.status(400).json({ error: '缩略图需以 / 或 http(s):// 开头' });
+  const ac = ['open', 'demo', 'login', 'contact'].includes(access) ? access : 'open';
+  const nt = String(note).trim().slice(0, 80);
   const st = ['live', 'coming'].includes(status) ? status : 'live';
   const u = String(url).trim();
   if (u && !/^https?:\/\//.test(u)) return res.status(400).json({ error: '工具链接需以 http(s):// 开头' });
@@ -188,13 +192,13 @@ router.post('/admin/api/tool', requireAdminApi, (req, res) => {
   if (id) {
     const old = db.prepare('SELECT id FROM tools WHERE id=?').get(Number(id));
     if (!old) return res.status(404).json({ error: '工具不存在' });
-    db.prepare(`UPDATE tools SET name=?, description=?, status=?, url=?, updated_at=datetime('now') WHERE id=?`)
-      .run(t, String(description).trim(), st, u, old.id);
+    db.prepare(`UPDATE tools SET name=?, description=?, status=?, url=?, thumb=?, access=?, note=?, updated_at=datetime('now') WHERE id=?`)
+      .run(t, String(description).trim(), st, u, th, ac, nt, old.id);
     return res.json({ ok: true, id: old.id });
   }
   const no = (db.prepare('SELECT MAX(no) m FROM tools').get().m || 0) + 1;
-  const r = db.prepare('INSERT INTO tools(no,name,description,status,url) VALUES (?,?,?,?,?)')
-    .run(no, t, String(description).trim(), st, u);
+  const r = db.prepare('INSERT INTO tools(no,name,description,status,url,thumb,access,note) VALUES (?,?,?,?,?,?,?,?)')
+    .run(no, t, String(description).trim(), st, u, th, ac, nt);
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
